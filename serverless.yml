@@ -1,0 +1,93 @@
+service:
+  name: serverless-hoepel-app
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+package:
+  exclude:
+    - secrets.yml
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  secrets: ${file(secrets.yml):${self:custom.stage}}
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+  environment:
+    DB_HOST: "${self:custom.secrets.DB_HOST}"
+    DB_PORT: "${self:custom.secrets.DB_PORT}"
+    DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
+    DB_USER: "${self:custom.secrets.DB_USER}"
+    DB_PASS: "${self:custom.secrets.DB_PASS}"
+
+functions:
+  authorize:
+    handler: authorize.handler
+
+  allChildren:
+    handler: functions/children.all
+    events:
+      - http:
+          method: get
+          path: children
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            parameters:
+              querystrings:
+                url: true
+
+  findChild:
+    handler: functions/children.byId
+    events:
+      - http:
+          method: get
+          path: children/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            paths:
+              id: true
+
+  createChild:
+    handler: functions/children.create
+    events:
+      - http:
+          method: post
+          path: children
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  updateChild:
+    handler: functions/children.update
+    events:
+      - http:
+          method: put
+          path: children/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  deleteChild:
+    handler: functions/children.remove
+    events:
+      - http:
+          method: delete
+          path: children/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "lib": [
+      "ES2018"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
