@@ -1,11 +1,10 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
-import { nano } from './nano';
 import { verify } from './verify-schema';
-import * as uuid from 'uuid/v4';
+import { GenericRepository } from '../services/generic-repository';
 
 type Status = 'error' | 'success';
 
-export class ApiHandlers {
+export class ApiHandlers<T> {
   private readonly databasePrefix = 'ic-';
 
   private readonly tenantQsMissingResponse = this.buildResponse(400, 'error', undefined, '\'tenant\' missing in query string');
@@ -18,13 +17,15 @@ export class ApiHandlers {
   private readonly deleted = (id) => this.buildResponse(200, 'success', { id }, 'Deleted');
   private readonly found = (doc) => this.buildResponse(200, 'success', doc);
 
+  private repository: GenericRepository<T>;
+
   constructor(
     private schemaName: string,
     private viewName: string,
     private kind: string,
     private designName = 'default',
   ) {
-
+    this.repository = new GenericRepository<T>(viewName, kind, designName)
   }
 
   public all: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -35,9 +36,8 @@ export class ApiHandlers {
     }
 
     const tenant = event.queryStringParameters['tenant'];
-    const db = nano.use(this.databasePrefix + tenant);
 
-    db.view(this.designName, this.viewName, { include_docs: true }, (err, data) => {
+    this.repository.all(this.createDbName(tenant), (err, data) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
           cb(null, this.notFoundResponse);
@@ -45,13 +45,9 @@ export class ApiHandlers {
           console.error('unexpected error', err);
           cb(null, this.unexpectedError(err));
         }
-
-        return;
+      } else {
+        cb(null, this.found(data));
       }
-
-      const docs = data.rows.map(row => Object.assign(row.doc.doc, { id: row.doc._id }) );
-
-      cb(null, this.found(docs));
     });
   };
 
@@ -63,9 +59,8 @@ export class ApiHandlers {
     }
 
     const tenant = event.queryStringParameters['tenant'];
-    const db = nano.use(this.databasePrefix + tenant);
 
-    db.get(event.pathParameters['id'], (err, data) => {
+    this.repository.byId(this.createDbName(tenant), event.pathParameters['id'], (err, data) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
           cb(null, this.notFoundResponse);
@@ -73,11 +68,9 @@ export class ApiHandlers {
           console.error('unexpected error', err);
           cb(null, this.unexpectedError(err));
         }
-
-        return;
+      } else {
+        cb(null, this.found(data));
       }
-
-      cb(null, this.found(Object.assign(data.doc, { id: data._id })));
     });
   };
 
@@ -104,11 +97,9 @@ export class ApiHandlers {
       return;
     }
 
-
     const tenant = event.queryStringParameters['tenant'];
-    const db = nano.use(this.databasePrefix + tenant);
 
-    db.insert(this.createDoc(uuid(), this.kind, body), (err, res) => {
+    this.repository.create(this.createDbName(tenant), body, (err, newId) => {
       // handle missing db
       if (err) {
         if (err.error && err.error === 'not_found') {
@@ -117,11 +108,9 @@ export class ApiHandlers {
           console.error('unexpected error', err);
           cb(null, this.unexpectedError(err));
         }
-
-        return;
+      } else {
+        cb(null, this.created(newId));
       }
-
-      cb(null, this.created(res.id));
     });
   };
 
@@ -149,9 +138,8 @@ export class ApiHandlers {
     }
 
     const tenant = event.queryStringParameters['tenant'];
-    const db = nano.use(this.databasePrefix + tenant);
 
-    db.get(event.pathParameters['id'], (err, data) => {
+    this.repository.update(this.createDbName(tenant), body, event.pathParameters['id'], (err, updatedId) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
           cb(null, this.notFoundResponse);
@@ -159,19 +147,9 @@ export class ApiHandlers {
           console.error('unexpected error', err);
           cb(null, this.unexpectedError(err));
         }
-
-        return;
+      } else {
+        cb(null, this.updated(updatedId));
       }
-
-      db.insert(this.createDoc(event.pathParameters['id'], this.kind, body, data._rev), (err, res) => {
-        if (err) {
-          console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
-          return;
-        }
-
-        cb(null, this.updated(res.id));
-      });
     });
   };
 
@@ -183,9 +161,8 @@ export class ApiHandlers {
     }
 
     const tenant = event.queryStringParameters['tenant'];
-    const db = nano.use(this.databasePrefix + tenant);
 
-    db.get(event.pathParameters['id'], (err, data) => {
+    this.repository.delete(this.createDbName(tenant), event.pathParameters['id'], (err, deletedId) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
           cb(null, this.notFoundResponse);
@@ -193,30 +170,11 @@ export class ApiHandlers {
           console.error('unexpected error', err);
           cb(null, this.unexpectedError(err));
         }
-
-        return;
+      } else {
+        cb(null, this.deleted(deletedId))
       }
-
-      db.destroy(event.pathParameters['id'], data._rev, (err, res) => {
-        if (err) {
-          console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
-          return;
-        }
-
-        cb(null, this.deleted(res.id));
-      });
     });
   };
-
-  private createDoc(id, kind, doc, rev?) {
-    return {
-      _id: id,
-      _rev: rev,
-      doc,
-      kind,
-    };
-  }
 
   private tryParseJson(input: string) {
     if (!input) {
@@ -242,5 +200,9 @@ export class ApiHandlers {
         error,
       }
     }
+  }
+
+  private createDbName(tenantName: string) {
+    return this.databasePrefix + tenantName;
   }
 }
