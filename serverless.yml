@@ -28,12 +28,77 @@ functions:
   authorize:
     handler: authorize.handler
 
+  # Day CRUD
+  allDays:
+    handler: functions/days.all
+    events:
+      - http:
+          method: get
+          path: day
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            parameters:
+              querystrings:
+                url: true
+
+  findDay:
+    handler: functions/days.byId
+    events:
+      - http:
+          method: get
+          path: day/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            paths:
+              id: true
+
+  createDay:
+    handler: functions/days.create
+    events:
+      - http:
+          method: post
+          path: day
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  updateDay:
+    handler: functions/days.update
+    events:
+      - http:
+          method: put
+          path: day/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  deleteDay:
+    handler: functions/days.remove
+    events:
+      - http:
+          method: delete
+          path: day/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+
+  # Child CRUD
   allChildren:
     handler: functions/children.all
     events:
       - http:
           method: get
-          path: children
+          path: child
           cors: true
           authorizer:
             name: authorize
@@ -48,7 +113,7 @@ functions:
     events:
       - http:
           method: get
-          path: children/{id}
+          path: child/{id}
           cors: true
           authorizer:
             name: authorize
@@ -62,7 +127,7 @@ functions:
     events:
       - http:
           method: post
-          path: children
+          path: child
           cors: true
           authorizer:
             name: authorize
@@ -73,7 +138,7 @@ functions:
     events:
       - http:
           method: put
-          path: children/{id}
+          path: child/{id}
           cors: true
           authorizer:
             name: authorize
@@ -84,10 +149,136 @@ functions:
     events:
       - http:
           method: delete
-          path: children/{id}
+          path: child/{id}
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
+
+  # Contact person CRUD
+  allContactPeople:
+    handler: functions/contact-people.all
+    events:
+      - http:
+          method: get
+          path: contact-person
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            parameters:
+              querystrings:
+                url: true
+
+  findContactPerson:
+    handler: functions/contact-people.byId
+    events:
+      - http:
+          method: get
+          path: contact-person/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            paths:
+              id: true
+
+  createContactPerson:
+    handler: functions/contact-people.create
+    events:
+      - http:
+          method: post
+          path: contact-person
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  updateContactPerson:
+    handler: functions/contact-people.update
+    events:
+      - http:
+          method: put
+          path: contact-person/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  deleteContactPerson:
+    handler: functions/contact-people.remove
+    events:
+      - http:
+          method: delete
+          path: contact-person/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  # Crew CRUD
+  allCrewMembers:
+    handler: functions/crew-members.all
+    events:
+      - http:
+          method: get
+          path: crew-member
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            parameters:
+              querystrings:
+                url: true
+
+  findCrewMember:
+    handler: functions/crew-members.byId
+    events:
+      - http:
+          method: get
+          path: crew-member/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            paths:
+              id: true
+
+  createCrewMember:
+    handler: functions/crew-members.create
+    events:
+      - http:
+          method: post
+          path: crew-member
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  updateCrewMember:
+    handler: functions/crew-members.update
+    events:
+      - http:
+          method: put
+          path: crew-member/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  deleteCrewMember:
+    handler: functions/crew-members.remove
+    events:
+      - http:
+          method: delete
+          path: crew-member/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
 
