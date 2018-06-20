@@ -1,21 +1,12 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { verify } from './verify-schema';
 import { GenericRepository } from '../services/generic-repository';
+import { ResponseBuilder } from './response-builder';
 
-type Status = 'error' | 'success';
-
-export class ApiHandlers<T> {
+export class GenericApiHandlers<T> {
   private readonly databasePrefix = 'ic-';
 
-  private readonly tenantQsMissingResponse = this.buildResponse(400, 'error', undefined, '\'tenant\' missing in query string');
-  private readonly notFoundResponse = this.buildResponse(404, 'error', undefined, 'Not found');
-  private readonly bodyMissingOrNotValidJson = this.buildResponse(400, 'error', undefined, 'Body not set or not valid JSON');
-  private readonly unexpectedError = (error) => this.buildResponse(500, 'error', undefined, 'Unexpected error', error);
-  private readonly jsonNotConformingToSchema = (errors) => this.buildResponse(400, 'error', undefined, 'Invalid body: does not conform to schema', errors);
-  private readonly created = (id) => this.buildResponse(201, 'success', { id }, 'Created');
-  private readonly updated = (id) => this.buildResponse(200, 'success', { id }, 'Updated');
-  private readonly deleted = (id) => this.buildResponse(200, 'success', { id }, 'Deleted');
-  private readonly found = (doc) => this.buildResponse(200, 'success', doc);
+  private responseBuilder = new ResponseBuilder();
 
   private repository: GenericRepository<T>;
 
@@ -31,7 +22,7 @@ export class ApiHandlers<T> {
   public all: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
-      cb(null, this.tenantQsMissingResponse);
+      cb(null, this.responseBuilder.tenantQsMissingResponse());
       return;
     }
 
@@ -40,13 +31,13 @@ export class ApiHandlers<T> {
     this.repository.all(this.createDbName(tenant), (err, data) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
-          cb(null, this.notFoundResponse);
+          cb(null, this.responseBuilder.notFoundResponse());
         } else {
           console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
+          cb(null, this.responseBuilder.unexpectedError(err));
         }
       } else {
-        cb(null, this.found(data));
+        cb(null, this.responseBuilder.found(data));
       }
     });
   };
@@ -54,7 +45,7 @@ export class ApiHandlers<T> {
   public byId: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
-      cb(null, this.tenantQsMissingResponse);
+      cb(null, this.responseBuilder.tenantQsMissingResponse());
       return;
     }
 
@@ -63,13 +54,13 @@ export class ApiHandlers<T> {
     this.repository.byId(this.createDbName(tenant), event.pathParameters['id'], (err, data) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
-          cb(null, this.notFoundResponse);
+          cb(null, this.responseBuilder.notFoundResponse());
         } else {
           console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
+          cb(null, this.responseBuilder.unexpectedError(err));
         }
       } else {
-        cb(null, this.found(data));
+        cb(null, this.responseBuilder.found(data));
       }
     });
   };
@@ -77,7 +68,7 @@ export class ApiHandlers<T> {
   public create: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
-      cb(null, this.tenantQsMissingResponse);
+      cb(null, this.responseBuilder.tenantQsMissingResponse());
       return;
     }
 
@@ -85,7 +76,7 @@ export class ApiHandlers<T> {
     const body = this.tryParseJson(event.body);
 
     if (!body) {
-      cb(null, this.bodyMissingOrNotValidJson);
+      cb(null, this.responseBuilder.bodyMissingOrNotValidJson());
       return;
     }
 
@@ -93,7 +84,7 @@ export class ApiHandlers<T> {
     const valid = verify(this.schemaName, body);
 
     if (!valid.valid) {
-      cb(null, this.jsonNotConformingToSchema(valid.errors));
+      cb(null, this.responseBuilder.jsonNotConformingToSchema(valid.errors));
       return;
     }
 
@@ -103,13 +94,13 @@ export class ApiHandlers<T> {
       // handle missing db
       if (err) {
         if (err.error && err.error === 'not_found') {
-          cb(null, this.notFoundResponse);
+          cb(null, this.responseBuilder.notFoundResponse());
         } else {
           console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
+          cb(null, this.responseBuilder.unexpectedError(err));
         }
       } else {
-        cb(null, this.created(newId));
+        cb(null, this.responseBuilder.created(newId));
       }
     });
   };
@@ -117,7 +108,7 @@ export class ApiHandlers<T> {
   public update: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
-      cb(null, this.tenantQsMissingResponse);
+      cb(null, this.responseBuilder.tenantQsMissingResponse());
       return;
     }
 
@@ -125,7 +116,7 @@ export class ApiHandlers<T> {
     const body = this.tryParseJson(event.body);
 
     if (!body) {
-      cb(null, this.bodyMissingOrNotValidJson);
+      cb(null, this.responseBuilder.bodyMissingOrNotValidJson());
       return;
     }
 
@@ -133,7 +124,7 @@ export class ApiHandlers<T> {
     const valid = verify(this.schemaName, body);
 
     if (!valid.valid) {
-      cb(null, this.jsonNotConformingToSchema(valid.errors));
+      cb(null, this.responseBuilder.jsonNotConformingToSchema(valid.errors));
       return;
     }
 
@@ -142,13 +133,13 @@ export class ApiHandlers<T> {
     this.repository.update(this.createDbName(tenant), body, event.pathParameters['id'], (err, updatedId) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
-          cb(null, this.notFoundResponse);
+          cb(null, this.responseBuilder.notFoundResponse());
         } else {
           console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
+          cb(null, this.responseBuilder.unexpectedError(err));
         }
       } else {
-        cb(null, this.updated(updatedId));
+        cb(null, this.responseBuilder.updated(updatedId));
       }
     });
   };
@@ -156,7 +147,7 @@ export class ApiHandlers<T> {
   public delete: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
-      cb(null, this.tenantQsMissingResponse);
+      cb(null, this.responseBuilder.tenantQsMissingResponse());
       return;
     }
 
@@ -165,13 +156,13 @@ export class ApiHandlers<T> {
     this.repository.delete(this.createDbName(tenant), event.pathParameters['id'], (err, deletedId) => {
       if (err) {
         if (err.error && err.error === 'not_found') {
-          cb(null, this.notFoundResponse);
+          cb(null, this.responseBuilder.notFoundResponse());
         } else {
           console.error('unexpected error', err);
-          cb(null, this.unexpectedError(err));
+          cb(null, this.responseBuilder.unexpectedError(err));
         }
       } else {
-        cb(null, this.deleted(deletedId))
+        cb(null, this.responseBuilder.deleted(deletedId))
       }
     });
   };
@@ -186,18 +177,6 @@ export class ApiHandlers<T> {
         return JSON.parse(input);
       } catch(e) {
         return null;
-      }
-    }
-  }
-
-  private buildResponse(statusCode: number, status: Status, data?, message?, error?) {
-    return {
-      statusCode,
-      body: {
-        status,
-        message,
-        data,
-        error,
       }
     }
   }

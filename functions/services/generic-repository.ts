@@ -1,7 +1,6 @@
 import { nano } from '../common/nano';
 import * as uuid from 'uuid/v4';
-
-export type Callback<T> = (err, T) => void;
+import { Callback } from '../common/callback';
 
 export class GenericRepository<T> {
   constructor(

@@ -1,6 +1,6 @@
-import { ApiHandlers } from './common/api-handlers';
+import { GenericApiHandlers } from './common/generic-api-handlers';
 
-const handlers = new ApiHandlers('Day', 'all-days', 'type/day/v1');
+const handlers = new GenericApiHandlers('IDay', 'all-days', 'type/day/v1');
 
 export const all = handlers.all;
 export const byId = handlers.byId;

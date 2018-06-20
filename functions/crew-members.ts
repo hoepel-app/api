@@ -1,6 +1,6 @@
-import { ApiHandlers } from './common/api-handlers';
+import { GenericApiHandlers } from './common/generic-api-handlers';
 
-const handlers = new ApiHandlers('Crew', 'all-crew', 'type/crew/v1');
+const handlers = new GenericApiHandlers('ICrew', 'all-crew', 'type/crew/v1');
 
 export const all = handlers.all;
 export const byId = handlers.byId;

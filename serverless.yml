@@ -282,3 +282,93 @@ functions:
             name: authorize
             resultTtlInSeconds: 0
 
+  # Child attendance API
+  numberOfChildAttendances:
+    handler: functions/child-attendances.numberOfChildAttendances
+    events:
+      - http:
+          path: day/attendances/child
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  childAttendancesOnDay:
+    handler: functions/child-attendances.childAttendancesOnDay
+    events:
+      - http:
+          path: day/{childId}/attendances/child
+          method: get
+
+  findAllChildAttendancesPerChild:
+    handler: functions/child-attendances.findAllPerChild
+    events:
+      - http:
+          path: day/attendances/child/all
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+      - http:
+          path: day/attendances/child/all/byChild
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  findAllChildAttendancesPerDay:
+    handler: functions/child-attendances.findAllPerDay
+    events:
+      - http:
+          path: day/attendances/child/all/byDay
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  findAllChildAttendancesRaw:
+    handler: functions/child-attendances.findAllRaw
+    events:
+      - http:
+          path: day/attendances/child/all/raw
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getAttendancesForChild:
+    handler: functions/child-attendances.getAttendancesForChild
+    events:
+      - http:
+          path: child/{childId}/attendances
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  addAttendancesForChild:
+    handler: functions/child-attendances.addAttendancesForChild
+    events:
+      - http:
+          path: child/{childId}/attendances/{dayId}
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+#  deleteAttendancesForChild:
+#    handler: functions/child-attendances.deleteAttendancesForChild
+#    events:
+#      - http:
+#          path: child/{childId}/attendances/{dayId}
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
