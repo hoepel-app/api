@@ -1,5 +1,5 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
-import { ChildAttendanceService } from './services/child-attendance-service';
+import { CrewAttendanceService } from './services/crew-attendance-service';
 import { ResponseBuilder } from './common/response-builder';
 import { isArray, isString } from 'util';
 import { tryParseJson } from './common/try-parse-json';
@@ -8,12 +8,12 @@ import { tryParseJson } from './common/try-parse-json';
 
 const createDbName = (tenantName: string) => 'ic-' + tenantName;
 
-const childAttendanceService = new ChildAttendanceService();
+const crewAttendanceService = new CrewAttendanceService();
 const responseBuilder = new ResponseBuilder();
 
 // API
 
-export const numberOfChildAttendances: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const numberOfCrewAttendances: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
 
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
@@ -23,7 +23,7 @@ export const numberOfChildAttendances: Handler = (event: APIGatewayEvent, contex
 
   const tenant = event.queryStringParameters['tenant'];
 
-  childAttendanceService.findNumberOfChildAttendances({
+  crewAttendanceService.findNumberOfCrewAttendances({
     dbName: createDbName(tenant),
   }, (err, data) => {
     if (err) {
@@ -39,7 +39,7 @@ export const numberOfChildAttendances: Handler = (event: APIGatewayEvent, contex
 
 };
 
-export const childAttendancesOnDay: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const crewAttendancesOnDay: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
     cb(null, responseBuilder.tenantQsMissingResponse());
@@ -50,7 +50,7 @@ export const childAttendancesOnDay: Handler = (event: APIGatewayEvent, context: 
 
   const dayId = event.pathParameters['dayId'];
 
-  childAttendanceService.findAllOnDay({ dbName: createDbName(tenant), dayId }, (err, data) => {
+  crewAttendanceService.findAllOnDay({ dbName: createDbName(tenant), dayId }, (err, data) => {
     if (err) {
       if (err.error && err.error === 'not_found') {
         cb(null, responseBuilder.notFoundResponse());
@@ -63,7 +63,7 @@ export const childAttendancesOnDay: Handler = (event: APIGatewayEvent, context: 
   });
 };
 
-export const findAllPerChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const findAllPerCrew: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
     cb(null, responseBuilder.tenantQsMissingResponse());
@@ -72,7 +72,7 @@ export const findAllPerChild: Handler = (event: APIGatewayEvent, context: Contex
 
   const tenant = event.queryStringParameters['tenant'];
 
-  childAttendanceService.findAll({ dbName: createDbName(tenant) }, (err, data) => {
+  crewAttendanceService.findAll({ dbName: createDbName(tenant) }, (err, data) => {
     if (err) {
       if (err.error && err.error === 'not_found') {
         cb(null, responseBuilder.notFoundResponse());
@@ -94,7 +94,7 @@ export const findAllPerDay: Handler = (event: APIGatewayEvent, context: Context,
 
   const tenant = event.queryStringParameters['tenant'];
 
-  childAttendanceService.findAllPerDay({ dbName: createDbName(tenant) }, (err, data) => {
+  crewAttendanceService.findAllPerDay({ dbName: createDbName(tenant) }, (err, data) => {
     if (err) {
       if (err.error && err.error === 'not_found') {
         cb(null, responseBuilder.notFoundResponse());
@@ -116,7 +116,7 @@ export const findAllRaw: Handler = (event: APIGatewayEvent, context: Context, cb
 
   const tenant = event.queryStringParameters['tenant'];
 
-  childAttendanceService.findAllRaw({
+  crewAttendanceService.findAllRaw({
     dbName: createDbName(tenant),
   }, (err, data) => {
     if (err) {
@@ -131,7 +131,7 @@ export const findAllRaw: Handler = (event: APIGatewayEvent, context: Context, cb
   })
 };
 
-export const getAttendancesForChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const getAttendancesForCrew: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
     cb(null, responseBuilder.tenantQsMissingResponse());
@@ -140,11 +140,11 @@ export const getAttendancesForChild: Handler = (event: APIGatewayEvent, context:
 
   const tenant = event.queryStringParameters['tenant'];
 
-  const id = event.pathParameters['childId'];
+  const id = event.pathParameters['crewId'];
 
-  childAttendanceService.findAttendancesForChild({
+  crewAttendanceService.findAttendancesForCrew({
     dbName: createDbName(tenant),
-    childId: id,
+    crewId: id,
   }, (err, data) => {
     if (err) {
       if (err.error && err.error === 'not_found') {
@@ -158,7 +158,7 @@ export const getAttendancesForChild: Handler = (event: APIGatewayEvent, context:
   });
 };
 
-export const addAttendancesForChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const addAttendancesForCrew: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
     cb(null, responseBuilder.tenantQsMissingResponse());
@@ -168,7 +168,7 @@ export const addAttendancesForChild: Handler = (event: APIGatewayEvent, context:
   const tenant = event.queryStringParameters['tenant'];
 
   const dayId = event.pathParameters['dayId'];
-  const childId = event.pathParameters['childId'];
+  const crewId = event.pathParameters['crewId'];
 
   if (!event.body
     || !tryParseJson(event.body)
@@ -183,11 +183,11 @@ export const addAttendancesForChild: Handler = (event: APIGatewayEvent, context:
   const shiftIds = tryParseJson(event.body).shiftIds;
   const ageGroupName = tryParseJson(event.body).ageGroupName;
 
-  childAttendanceService.addAttendancesForChild({
+  crewAttendanceService.addAttendancesForCrew({
     dbName: createDbName(tenant),
     ageGroupName,
     shifts: shiftIds,
-    childId,
+    crewId,
     dayId,
   }, (err, data) => {
     if (err) {
@@ -202,7 +202,7 @@ export const addAttendancesForChild: Handler = (event: APIGatewayEvent, context:
   });
 };
 
-export const deleteAttendancesForChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const deleteAttendancesForCrew: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
     cb(null, responseBuilder.tenantQsMissingResponse());
@@ -212,7 +212,7 @@ export const deleteAttendancesForChild: Handler = (event: APIGatewayEvent, conte
   const tenant = event.queryStringParameters['tenant'];
 
   const dayId = event.pathParameters['dayId'];
-  const childId = event.pathParameters['childId'];
+  const crewId = event.pathParameters['crewId'];
 
   if (!event.body
     || !tryParseJson(event.body)
@@ -226,7 +226,7 @@ export const deleteAttendancesForChild: Handler = (event: APIGatewayEvent, conte
 
   const shiftIds = tryParseJson(event.body).shiftIds
 
-  childAttendanceService.removeAttendancesForChild({ dbName: createDbName(tenant), childId, dayId, shifts: shiftIds }, (err, data) => {
+  crewAttendanceService.removeAttendancesForCrew({ dbName: createDbName(tenant), crewId, dayId, shifts: shiftIds }, (err, data) => {
     if (err) {
       if (err.error && err.error === 'not_found') {
         cb(null, responseBuilder.notFoundResponse());

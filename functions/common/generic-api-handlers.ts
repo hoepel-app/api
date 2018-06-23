@@ -2,6 +2,7 @@ import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { verify } from './verify-schema';
 import { GenericRepository } from '../services/generic-repository';
 import { ResponseBuilder } from './response-builder';
+import { tryParseJson } from './try-parse-json';
 
 export class GenericApiHandlers<T> {
   private readonly databasePrefix = 'ic-';
@@ -73,7 +74,7 @@ export class GenericApiHandlers<T> {
     }
 
     // check if body is valid JSON
-    const body = this.tryParseJson(event.body);
+    const body = tryParseJson(event.body);
 
     if (!body) {
       cb(null, this.responseBuilder.bodyMissingOrNotValidJson());
@@ -113,7 +114,7 @@ export class GenericApiHandlers<T> {
     }
 
     // check if body is valid JSON
-    const body = this.tryParseJson(event.body);
+    const body = tryParseJson(event.body);
 
     if (!body) {
       cb(null, this.responseBuilder.bodyMissingOrNotValidJson());
@@ -166,20 +167,6 @@ export class GenericApiHandlers<T> {
       }
     });
   };
-
-  private tryParseJson(input: string) {
-    if (!input) {
-      return null;
-    }
-
-    if(input) {
-      try {
-        return JSON.parse(input);
-      } catch(e) {
-        return null;
-      }
-    }
-  }
 
   private createDbName(tenantName: string) {
     return this.databasePrefix + tenantName;
