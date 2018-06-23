@@ -298,7 +298,7 @@ functions:
     handler: functions/child-attendances.childAttendancesOnDay
     events:
       - http:
-          path: day/{childId}/attendances/child
+          path: day/{dayId}/attendances/child
           method: get
 
   findAllChildAttendancesPerChild:
@@ -363,12 +363,13 @@ functions:
             name: authorize
             resultTtlInSeconds: 0
 
-#  deleteAttendancesForChild:
-#    handler: functions/child-attendances.deleteAttendancesForChild
-#    events:
-#      - http:
-#          path: child/{childId}/attendances/{dayId}
-#          cors: true
-#          authorizer:
-#            name: authorize
-#            resultTtlInSeconds: 0
+  deleteAttendancesForChild:
+    handler: functions/child-attendances.deleteAttendancesForChild
+    events:
+      - http:
+          path: child/{childId}/attendances/{dayId}
+          method: delete
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0

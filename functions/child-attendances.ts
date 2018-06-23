@@ -1,9 +1,30 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { ChildAttendanceService } from './services/child-attendance-service';
 import { ResponseBuilder } from './common/response-builder';
+import { isArray, isString } from 'util';
+
+// Helpers
+
+const createDbName = (tenantName: string) => 'ic-' + tenantName;
 
 const childAttendanceService = new ChildAttendanceService();
 const responseBuilder = new ResponseBuilder();
+
+const tryParseJson = (input: string) => {
+  if (!input) {
+    return null;
+  }
+
+  if(input) {
+    try {
+      return JSON.parse(input);
+    } catch(e) {
+      return null;
+    }
+  }
+};
+
+// API
 
 export const numberOfChildAttendances: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
 
@@ -16,7 +37,7 @@ export const numberOfChildAttendances: Handler = (event: APIGatewayEvent, contex
   const tenant = event.queryStringParameters['tenant'];
 
   childAttendanceService.findNumberOfChildAttendances({
-    dbName: tenant,
+    dbName: createDbName(tenant),
   }, (err, data) => {
     if (err) {
       if (err.error && err.error === 'not_found') {
@@ -40,9 +61,19 @@ export const childAttendancesOnDay: Handler = (event: APIGatewayEvent, context: 
 
   const tenant = event.queryStringParameters['tenant'];
 
-  const id = event.pathParameters['childId'];
+  const dayId = event.pathParameters['dayId'];
 
-
+  childAttendanceService.findAllOnDay({ dbName: createDbName(tenant), dayId }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.found(data));
+    }
+  });
 };
 
 export const findAllPerChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -54,6 +85,17 @@ export const findAllPerChild: Handler = (event: APIGatewayEvent, context: Contex
 
   const tenant = event.queryStringParameters['tenant'];
 
+  childAttendanceService.findAll({ dbName: createDbName(tenant) }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.found(data));
+    }
+  });
 };
 
 export const findAllPerDay: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -65,6 +107,17 @@ export const findAllPerDay: Handler = (event: APIGatewayEvent, context: Context,
 
   const tenant = event.queryStringParameters['tenant'];
 
+  childAttendanceService.findAllPerDay({ dbName: createDbName(tenant) }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.found(data));
+    }
+  });
 };
 
 export const findAllRaw: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -76,6 +129,19 @@ export const findAllRaw: Handler = (event: APIGatewayEvent, context: Context, cb
 
   const tenant = event.queryStringParameters['tenant'];
 
+  childAttendanceService.findAllRaw({
+    dbName: createDbName(tenant),
+  }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.found(data));
+    }
+  })
 };
 
 export const getAttendancesForChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -88,6 +154,21 @@ export const getAttendancesForChild: Handler = (event: APIGatewayEvent, context:
   const tenant = event.queryStringParameters['tenant'];
 
   const id = event.pathParameters['childId'];
+
+  childAttendanceService.findAttendancesForChild({
+    dbName: createDbName(tenant),
+    childId: id,
+  }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.found(data));
+    }
+  });
 };
 
 export const addAttendancesForChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -99,9 +180,39 @@ export const addAttendancesForChild: Handler = (event: APIGatewayEvent, context:
 
   const tenant = event.queryStringParameters['tenant'];
 
-
   const dayId = event.pathParameters['dayId'];
   const childId = event.pathParameters['childId'];
+
+  if (!event.body
+    || !tryParseJson(event.body)
+    || !(tryParseJson(event.body).shiftIds)
+    || !isArray((tryParseJson(event.body).shiftIds))
+    || tryParseJson(event.body).shiftIds.filter(element => !isString(element)).length > 0
+  ) {
+    cb(null, responseBuilder.unexpectedError('Invalid body: must be JSON object containing key "shiftIds", an array of shift ids'));
+    return;
+  }
+
+  const shiftIds = tryParseJson(event.body).shiftIds;
+  const ageGroupName = tryParseJson(event.body).ageGroupName;
+
+  childAttendanceService.addAttendancesForChild({
+    dbName: createDbName(tenant),
+    ageGroupName,
+    shifts: shiftIds,
+    childId,
+    dayId,
+  }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.created(data));
+    }
+  });
 };
 
 export const deleteAttendancesForChild: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
@@ -115,4 +226,28 @@ export const deleteAttendancesForChild: Handler = (event: APIGatewayEvent, conte
 
   const dayId = event.pathParameters['dayId'];
   const childId = event.pathParameters['childId'];
+
+  if (!event.body
+    || !tryParseJson(event.body)
+    || !(tryParseJson(event.body).shiftIds)
+    || !isArray((tryParseJson(event.body).shiftIds))
+    || tryParseJson(event.body).shiftIds.filter(element => !isString(element)).length > 0
+  ) {
+    cb(null, responseBuilder.unexpectedError('Invalid body: must be JSON object containing key "shiftIds", an array of shift ids'));
+    return;
+  }
+
+  const shiftIds = tryParseJson(event.body).shiftIds
+
+  childAttendanceService.removeAttendancesForChild({ dbName: createDbName(tenant), childId, dayId, shifts: shiftIds }, (err, data) => {
+    if (err) {
+      if (err.error && err.error === 'not_found') {
+        cb(null, responseBuilder.notFoundResponse());
+      } else {
+        cb(null, responseBuilder.unexpectedError(err));
+      }
+    } else {
+      cb(null, responseBuilder.deleted(data));
+    }
+  });
 };

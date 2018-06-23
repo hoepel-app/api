@@ -17,9 +17,7 @@ export class GenericRepository<T> {
       if (err) {
         callback(err, null);
       } else {
-        console.log('data', data);
         const docs = data.rows.map(row => Object.assign(row.doc.doc, { id: row.doc._id }) );
-        console.log('docs',docs);
         callback(null, docs);
       }
     });

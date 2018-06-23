@@ -10,12 +10,14 @@
     "@types/nano": "^6.4.5",
     "ajv": "^6.5.1",
     "dotenv": "^6.0.0",
+    "lodash": "^4.17.10",
     "nano": "^6.4.4",
     "source-map-support": "^0.5.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "0.0.22",
+    "@types/lodash": "^4.14.110",
     "@types/node": "^8.0.57",
     "serverless-offline": "^3.25.4",
     "serverless-webpack": "^4.0.0",
