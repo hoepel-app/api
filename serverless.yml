@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-offline
+  - serverless-apigw-binary
 
 package:
   exclude:
@@ -12,6 +13,10 @@ package:
 custom:
   stage: ${opt:stage, self:provider.stage}
   secrets: ${file(secrets.yml):${self:custom.stage}}
+
+  apigwBinary:
+    types:
+      - '*/*'
 
 provider:
   name: aws
@@ -23,6 +28,7 @@ provider:
     DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
     DB_USER: "${self:custom.secrets.DB_USER}"
     DB_PASS: "${self:custom.secrets.DB_PASS}"
+
 
 functions:
   authorize:
@@ -285,91 +291,91 @@ functions:
 
   # Child attendance API
 
-  numberOfCrewAttendances:
-    handler: functions/crew-attendances.numberOfCrewAttendances
+  numberOfChildAttendances:
+    handler: functions/child-attendances.numberOfChildAttendances
     events:
       - http:
-          path: day/attendances/crew
+          path: day/attendances/child
           method: get
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
-  crewAttendancesOnDay:
-    handler: functions/crew-attendances.crewAttendancesOnDay
+  childAttendancesOnDay:
+    handler: functions/child-attendances.childAttendancesOnDay
     events:
       - http:
-          path: day/{dayId}/attendances/crew
+          path: day/{dayId}/attendances/child
           method: get
 
-  findAllCrewAttendancesPerCrew:
-    handler: functions/crew-attendances.findAllPerCrew
+  findAllChildAttendancesPerChild:
+    handler: functions/child-attendances.findAllPerChild
     events:
       - http:
-          path: day/attendances/crew/all
+          path: day/attendances/child/all
           method: get
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
       - http:
-          path: day/attendances/crew/all/byCrew
+          path: day/attendances/child/all/byChild
           method: get
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
-  findAllCrewAttendancesPerDay:
-    handler: functions/crew-attendances.findAllPerDay
+  findAllChildAttendancesPerDay:
+    handler: functions/child-attendances.findAllPerDay
     events:
       - http:
-          path: day/attendances/crew/all/byDay
+          path: day/attendances/child/all/byDay
           method: get
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
-  findAllCrewAttendancesRaw:
-    handler: functions/crew-attendances.findAllRaw
+  findAllChildAttendancesRaw:
+    handler: functions/child-attendances.findAllRaw
     events:
       - http:
-          path: day/attendances/crew/all/raw
+          path: day/attendances/child/all/raw
           method: get
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
-  getAttendancesForCrew:
-    handler: functions/crew-attendances.getAttendancesForCrew
+  getAttendancesForChild:
+    handler: functions/child-attendances.getAttendancesForChild
     events:
       - http:
-          path: crew/{crewId}/attendances
+          path: child/{childId}/attendances
           method: get
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
-  addAttendancesForCrew:
-    handler: functions/crew-attendances.addAttendancesForCrew
+  addAttendancesForChild:
+    handler: functions/child-attendances.addAttendancesForChild
     events:
       - http:
-          path: crew/{crewId}/attendances/{dayId}
+          path: child/{childId}/attendances/{dayId}
           method: post
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
-  deleteAttendancesForCrew:
-    handler: functions/crew-attendances.deleteAttendancesForCrew
+  deleteAttendancesForChild:
+    handler: functions/child-attendances.deleteAttendancesForChild
     events:
       - http:
-          path: crew/{crewId}/attendances/{dayId}
+          path: child/{childId}/attendances/{dayId}
           method: delete
           cors: true
           authorizer:
@@ -469,3 +475,107 @@ functions:
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
+
+# TODO
+#  # Report API
+#  downloadFiscalCertificates:
+#    handler: functions/reports.downloadFiscalCertificates
+#    events:
+#      - http:
+#          path: files/fiscalCertificate/:year
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadFiscalCertificateForChild:
+#    handler: functions/reports.downloadFiscalCertificateForChild
+#    events:
+#      - http:
+#          path: files/fiscalCertificate/:year/:childId
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadCompensation:
+#    handler: functions/reports.downloadCompensation
+#    events:
+#      - http:
+#          path: files/compensation/:year
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadCompensationForCrew:
+#    handler: functions/reports.downloadCompensationForCrew
+#    events:
+#      - http:
+#          path: files/compensation/:year/:crewId
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadChildrenPerDay:
+#    handler: functions/reports.downloadChildrenPerDay
+#    events:
+#      - http:
+#          path: files/childrenPerDay/:year
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadAttendancesOnDay:
+#    handler: functions/reports.downloadAttendancesOnDay
+#    events:
+#      - http:
+#          path: files/attendance/:dayId
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+
+# TODO
+#  # Export API
+#  downloadChildren:
+#    handler: functions/export.downloadChildren
+#    events:
+#      - http:
+#          path: files/export/children
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadChildrenWithRemarks:
+#    handler: functions/export.downloadChildrenWithRemarks
+#    events:
+#      - http:
+#          path: files/export/children/with-comment
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+#
+#  downloadCrew:
+#    handler: functions/export.downloadCrew
+#    events:
+#      - http:
+#          path: files/export/crew
+#          method: get
+#          cors: true
+#          authorizer:
+#            name: authorize
+#            resultTtlInSeconds: 0
+

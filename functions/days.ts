@@ -7,3 +7,5 @@ export const byId = handlers.byId;
 export const create = handlers.create;
 export const update = handlers.update;
 export const remove = handlers.delete;
+
+export const dayRepository = handlers.repository;

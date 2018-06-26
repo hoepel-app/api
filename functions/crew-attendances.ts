@@ -181,11 +181,9 @@ export const addAttendancesForCrew: Handler = (event: APIGatewayEvent, context: 
   }
 
   const shiftIds = tryParseJson(event.body).shiftIds;
-  const ageGroupName = tryParseJson(event.body).ageGroupName;
 
   crewAttendanceService.addAttendancesForCrew({
     dbName: createDbName(tenant),
-    ageGroupName,
     shifts: shiftIds,
     crewId,
     dayId,

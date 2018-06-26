@@ -1,6 +1,8 @@
 import * as Ajv from 'ajv';
-import * as schema from "../../docs.hoepel.app/schema.json"
+import * as fs from 'fs';
+//import * as schema from "../../docs.hoepel.app/schema.json"
 
+const schema = JSON.parse(fs.readFileSync('docs.hoepel.app/schema.json').toString());
 
 export const verify = (schemaName: string, input) => {
   const ajv = new Ajv({ allErrors: true });

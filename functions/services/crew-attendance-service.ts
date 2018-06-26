@@ -90,11 +90,11 @@ export class CrewAttendanceService {
     });
   }
 
-  public addAttendancesForCrew(opts: { dbName: string, crewId: string, dayId: string, shifts: string[], ageGroupName?: string }, callback: Callback<void>) {
+  public addAttendancesForCrew(opts: { dbName: string, crewId: string, dayId: string, shifts: string[] }, callback: Callback<void>) {
     const db = nano.use(opts.dbName);
 
     const docsToInsert = opts.shifts.map(shiftId => {
-      const detailedAttendance: PersistedDetailedAttendance = { ageGroupName: opts.ageGroupName, enrolled: new Date().toISOString() };
+      const detailedAttendance: PersistedDetailedAttendance = { enrolled: new Date().toISOString() };
 
       return {
         doc: detailedAttendance,
@@ -117,7 +117,6 @@ export class CrewAttendanceService {
                                  crewId: string,
                                  dayId: string,
                                  shift: string,
-                                 ageGroupName?: string
                                },
                                callback: Callback<void>,
   ) {
@@ -126,7 +125,6 @@ export class CrewAttendanceService {
       crewId: opts.crewId,
       dayId: opts.dayId,
       shifts: [ opts.shift ],
-      ageGroupName: opts.ageGroupName,
     }, callback)
   }
 

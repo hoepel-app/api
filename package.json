@@ -13,12 +13,14 @@
     "lodash": "^4.17.10",
     "nano": "^6.4.4",
     "source-map-support": "^0.5.0",
-    "uuid": "^3.2.1"
+    "uuid": "^3.2.1",
+    "xlsx": "^0.13.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "0.0.22",
     "@types/lodash": "^4.14.110",
     "@types/node": "^8.0.57",
+    "serverless-apigw-binary": "^0.4.4",
     "serverless-offline": "^3.25.4",
     "serverless-webpack": "^4.0.0",
     "ts-loader": "^2.3.7",

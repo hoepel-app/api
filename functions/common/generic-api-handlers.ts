@@ -9,7 +9,7 @@ export class GenericApiHandlers<T> {
 
   private responseBuilder = new ResponseBuilder();
 
-  private repository: GenericRepository<T>;
+  public repository: GenericRepository<T>;
 
   constructor(
     private schemaName: string,
@@ -17,7 +17,7 @@ export class GenericApiHandlers<T> {
     private kind: string,
     private designName = 'default',
   ) {
-    this.repository = new GenericRepository<T>(viewName, kind, designName)
+    this.repository = new GenericRepository<T>(viewName, kind, designName);
   }
 
   public all: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {

@@ -39,6 +39,18 @@ export class ResponseBuilder {
     return this.buildResponse(200, 'success', doc);
   }
 
+  foundBinary(base64Doc, fileName: string) {
+    return {
+      statusCode: 200,
+      body: base64Doc,
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment; filename="' + fileName +'"',
+      },
+      isBase64Encoded: true,
+    };
+  }
+
 
 
   private buildResponse(statusCode: number, status: Status, data?, message?, error?) {
