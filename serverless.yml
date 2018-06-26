@@ -579,3 +579,68 @@ functions:
 #            name: authorize
 #            resultTtlInSeconds: 0
 
+  # Age groups API
+  getAllAgeGroups:
+    handler: functions/age-groups.getAll
+    events:
+      - http:
+          path: age-groups
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  updateAgeGroups:
+    handler: functions/age-groups.createOrUpdate
+    events:
+      - http:
+          path: age-groups
+          method: put
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+
+#### Superadmin API
+#
+## Tenants
+#
+#GET           /api/v1/tenants                                       cloud.speelplein.dashboard.controllers.api.TenantsController.list
+#PUT           /api/v1/tenants/:name                                 cloud.speelplein.dashboard.controllers.api.TenantsController.create(name: String)
+#GET           /api/v1/tenants/:name                                 cloud.speelplein.dashboard.controllers.api.TenantsController.details(name)
+#POST          /api/v1/tenants/:name/generate-design-docs            cloud.speelplein.dashboard.controllers.api.TenantsController.generateDesignDocs(name)
+#POST          /api/v1/tenants/:name/sync-to                         cloud.speelplein.dashboard.controllers.api.TenantsController.syncTo(name)
+#POST          /api/v1/tenants/:name/sync-from                       cloud.speelplein.dashboard.controllers.api.TenantsController.syncFrom(name)
+#
+## Config
+#
+#GET           /api/v1/config/all                                    cloud.speelplein.dashboard.controllers.api.FrontendConfigController.getAllConfig
+#POST          /api/v1/config/generate-design-docs                   cloud.speelplein.dashboard.controllers.api.FrontendConfigController.generateDesignDocs
+#POST          /api/v1/config.json/:tenant                           cloud.speelplein.dashboard.controllers.api.FrontendConfigController.insertConfigDocument(tenant: String)
+#PUT           /api/v1/config.json/:tenant                           cloud.speelplein.dashboard.controllers.api.FrontendConfigController.updateConfigDocument(tenant: String)
+#
+## Users, roles and permissions (authorization and authentication)
+#
+#GET           /api/v1/auth/user                                     cloud.speelplein.dashboard.controllers.api.UserApiController.getAll
+#GET           /api/v1/auth/user/:id                                 cloud.speelplein.dashboard.controllers.api.UserApiController.getById(id: String)
+#PUT           /api/v1/auth/user/:userId                             cloud.speelplein.dashboard.controllers.api.UserApiController.getTenantData(userId: String)
+#PUT           /api/v1/auth/user/:userId/:tenant                     cloud.speelplein.dashboard.controllers.api.UserApiController.putTenantData(userId: String, tenant: String)
+#GET           /api/v1/auth/permissions                              cloud.speelplein.dashboard.controllers.api.AuthController.allPermissions
+#GET           /api/v1/auth/roles                                    cloud.speelplein.dashboard.controllers.api.AuthController.allRoles
+#
+## Audit log
+#
+##POST          /api/v1/audit/log                                     cloud.speelplein.dashboard.controllers.api.
+#GET           /api/v1/audit/log                                     cloud.speelplein.dashboard.controllers.api.AuditApiController.getLog(offset: Int ?= 0, count: Int ?= 50)
+#
+## Databases
+#
+#GET           /api/v1/databases                                     cloud.speelplein.dashboard.controllers.api.DatabaseController.list
+#
+#### Other routes
+#
+## Dashboard (frontend) config
+#
+#GET           /api/v1/config.json                                   cloud.speelplein.dashboard.controllers.api.FrontendConfigController.configJson
