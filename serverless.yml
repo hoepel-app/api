@@ -27,6 +27,7 @@ provider:
     DB_PORT: "${self:custom.secrets.DB_PORT}"
     DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
     DB_USER: "${self:custom.secrets.DB_USER}"
+    DB_PASS: "${self:custom.secrets.DB_PASS}"
 
     AUTH0_AUDIENCE: "${self:custom.secrets.AUTH0_AUDIENCE}"
     AUTH0_DOMAIN: "${self:custom.secrets.AUTH0_DOMAIN}"
@@ -673,17 +674,73 @@ functions:
             name: authorize
             resultTtlInSeconds: 0
 
-#### Superadmin API
-#
-## Tenants
-#
-#GET           /api/v1/tenants                                       cloud.speelplein.dashboard.controllers.api.TenantsController.list
-#PUT           /api/v1/tenants/:name                                 cloud.speelplein.dashboard.controllers.api.TenantsController.create(name: String)
-#GET           /api/v1/tenants/:name                                 cloud.speelplein.dashboard.controllers.api.TenantsController.details(name)
-#POST          /api/v1/tenants/:name/generate-design-docs            cloud.speelplein.dashboard.controllers.api.TenantsController.generateDesignDocs(name)
-#POST          /api/v1/tenants/:name/sync-to                         cloud.speelplein.dashboard.controllers.api.TenantsController.syncTo(name)
-#POST          /api/v1/tenants/:name/sync-from                       cloud.speelplein.dashboard.controllers.api.TenantsController.syncFrom(name)
-#
+  # Superadmin API
+  getAllTenants:
+    handler: functions/tenants.getAll
+    events:
+      - http:
+          path: tenants
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getTenantDetails:
+    handler: functions/tenants.details
+    events:
+      - http:
+          path: tenants/{name}
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  createTenant:
+    handler: functions/tenants.create
+    events:
+      - http:
+          path: tenants/{name}
+          method: put
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  createDesignDocs:
+    handler: functions/tenants.createDesignDocs
+    events:
+      - http:
+          path: tenants/{name}/generate-design-docs
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  syncTenantDatabaseTo:
+    handler: functions/tenants.syncTo
+    events:
+      - http:
+          path: tenants/sync-to/{name}
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  syncTenantDatabaseFrom:
+    handler: functions/tenants.syncFrom
+    events:
+      - http:
+          path: tenants/sync-from/{name}
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
 ## Config
 #
 #GET           /api/v1/config/all                                    cloud.speelplein.dashboard.controllers.api.FrontendConfigController.getAllConfig

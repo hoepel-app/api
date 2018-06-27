@@ -61,6 +61,7 @@ export class ResponseBuilder {
     return {
       statusCode,
       body: {
+        statusCode,
         status,
         message,
         data,

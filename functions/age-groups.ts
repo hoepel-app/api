@@ -3,10 +3,10 @@ import { ResponseBuilder } from './common/response-builder';
 import { AgeGroupsService } from './services/age-groups-service';
 import { tryParseJson } from './common/try-parse-json';
 import { isArray } from 'util';
+import { createDbName } from './common/create-db-name';
 
 const responseBuilder = new ResponseBuilder();
 const ageGroupsService = new AgeGroupsService();
-const createDbName = (tenant: string) => 'ic-' + tenant;
 
 export const getAll: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   // check if tenant query string is set

@@ -2,11 +2,11 @@ import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { ResponseBuilder } from './common/response-builder';
 import { ExportService } from './services/export-service';
 import { childRepository } from './children';
+import { createDbName } from './common/create-db-name';
 
 // Helpers
 
 const responseBuilder = new ResponseBuilder();
-const createDbName = (tenantName: string) => 'ic-' + tenantName;
 const exportService = new ExportService(childRepository);
 
 // API

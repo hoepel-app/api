@@ -3,11 +3,9 @@ import { ChildAttendanceService } from './services/child-attendance-service';
 import { ResponseBuilder } from './common/response-builder';
 import { isArray, isString } from 'util';
 import { tryParseJson } from './common/try-parse-json';
+import { createDbName } from './common/create-db-name';
 
 // Helpers
-
-const createDbName = (tenantName: string) => 'ic-' + tenantName;
-
 const childAttendanceService = new ChildAttendanceService();
 const responseBuilder = new ResponseBuilder();
 
