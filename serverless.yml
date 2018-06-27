@@ -602,6 +602,72 @@ functions:
             name: authorize
             resultTtlInSeconds: 0
 
+  # Auth API
+  getAllUsers:
+    handler: functions/auth.getAllUsers
+    events:
+      - http:
+          path: auth/user
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getUserById:
+    handler: functions/auth.getUserById
+    events:
+      - http:
+          path: auth/user/{id}
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getTenantData:
+    handler: functions/auth.getTenantData
+    events:
+      - http:
+          path: auth/user/{userId}/{tenant}
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  putTenantData:
+    handler: functions/auth.putTenantData
+    events:
+      - http:
+          path: auth/user/{userId}/{tenant}
+          method: put
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getAllPermissions:
+    handler: functions/auth.getAllPermissions
+    events:
+      - http:
+          path: auth/permissions
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getAllRoles:
+    handler: functions/auth.getAllRoles
+    events:
+      - http:
+          path: auth/roles
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
 
 #### Superadmin API
 #
@@ -620,15 +686,6 @@ functions:
 #POST          /api/v1/config/generate-design-docs                   cloud.speelplein.dashboard.controllers.api.FrontendConfigController.generateDesignDocs
 #POST          /api/v1/config.json/:tenant                           cloud.speelplein.dashboard.controllers.api.FrontendConfigController.insertConfigDocument(tenant: String)
 #PUT           /api/v1/config.json/:tenant                           cloud.speelplein.dashboard.controllers.api.FrontendConfigController.updateConfigDocument(tenant: String)
-#
-## Users, roles and permissions (authorization and authentication)
-#
-#GET           /api/v1/auth/user                                     cloud.speelplein.dashboard.controllers.api.UserApiController.getAll
-#GET           /api/v1/auth/user/:id                                 cloud.speelplein.dashboard.controllers.api.UserApiController.getById(id: String)
-#PUT           /api/v1/auth/user/:userId                             cloud.speelplein.dashboard.controllers.api.UserApiController.getTenantData(userId: String)
-#PUT           /api/v1/auth/user/:userId/:tenant                     cloud.speelplein.dashboard.controllers.api.UserApiController.putTenantData(userId: String, tenant: String)
-#GET           /api/v1/auth/permissions                              cloud.speelplein.dashboard.controllers.api.AuthController.allPermissions
-#GET           /api/v1/auth/roles                                    cloud.speelplein.dashboard.controllers.api.AuthController.allRoles
 #
 ## Audit log
 #

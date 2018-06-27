@@ -51,6 +51,10 @@ export class ResponseBuilder {
     };
   }
 
+  notImplemented() {
+    return this.buildResponse(501, 'error', 'Not implemented');
+  }
+
 
 
   private buildResponse(statusCode: number, status: Status, data?, message?, error?) {

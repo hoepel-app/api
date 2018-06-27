@@ -1,5 +1,6 @@
-const path = require('path');
-const slsw = require('serverless-webpack');
+const path    = require('path');
+const slsw    = require('serverless-webpack');
+const webpack = require('webpack');
 
 const entries = {};
 
@@ -17,7 +18,13 @@ module.exports = {
       '.json',
       '.ts',
       '.tsx'
-    ]
+    ],
+    alias: { // See https://github.com/auth0/node-auth0/issues/254
+      deepmerge$: path.resolve(
+        __dirname,
+        'node_modules/deepmerge/dist/umd.js'
+      )
+    }
   },
   output: {
     libraryTarget: 'commonjs',
@@ -30,4 +37,5 @@ module.exports = {
       { test: /\.ts(x?)$/, loader: 'ts-loader' },
     ],
   },
+  plugins: [ new webpack.DefinePlugin({ 'global.GENTLY': false }) ], // See https://github.com/auth0/node-auth0/issues/254
 };

@@ -2,7 +2,7 @@ import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { ResponseBuilder } from './common/response-builder';
 import { AgeGroupsService } from './services/age-groups-service';
 import { tryParseJson } from './common/try-parse-json';
-import { isArray, isString } from 'util';
+import { isArray } from 'util';
 
 const responseBuilder = new ResponseBuilder();
 const ageGroupsService = new AgeGroupsService();
