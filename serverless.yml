@@ -27,7 +27,11 @@ provider:
     DB_PORT: "${self:custom.secrets.DB_PORT}"
     DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
     DB_USER: "${self:custom.secrets.DB_USER}"
-    DB_PASS: "${self:custom.secrets.DB_PASS}"
+
+    AUTH0_AUDIENCE: "${self:custom.secrets.AUTH0_AUDIENCE}"
+    AUTH0_DOMAIN: "${self:custom.secrets.AUTH0_DOMAIN}"
+    AUTH0_CLIENT_ID: "${self:custom.secrets.AUTH0_CLIENT_ID}"
+    AUTH0_CLIENT_SECRET: "${self:custom.secrets.AUTH0_CLIENT_SECRET}"
 
 
 functions:

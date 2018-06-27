@@ -8,12 +8,12 @@ import { every } from 'lodash';
 // Helpers
 const responseBuilder = new ResponseBuilder();
 
-const auth0Audience = 'https://inschrijven-cloud.eu.auth0.com/api/v2/';
+const auth0Audience = process.env.AUTH0_AUDIENCE;
 
 const management = new auth0.ManagementClient({
-  domain: 'inschrijven-cloud.eu.auth0.com',
-  clientId: 'QLfuo1XV6A9T1LSZRIenkvVa2cVj2n7Y',
-  clientSecret: '8DXEKp7vhL8iG6bQ6FzWL80m8LEqc-HSKqwtbUVDXexixLuehj6-z1L2OTqK2-M4',
+  domain: process.env.AUTH0_DOMAIN,
+  clientId: process.env.AUTH0_CLIENT_ID,
+  clientSecret: process.env.AUTH0_CLIENT_SECRET,
 });
 
 // API
