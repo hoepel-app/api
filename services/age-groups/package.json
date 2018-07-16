@@ -1,0 +1,30 @@
+{
+  "name": "hoepel-app-age-groups-service",
+  "version": "1.0.0",
+  "description": "hoepel.app serverless age groups service",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ajv": "^6.5.2",
+    "lodash": "^4.17.10",
+    "nano": "^6.4.4",
+    "source-map-support": "^0.5.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "0.0.22",
+    "@types/lodash": "^4.14.110",
+    "@types/nano": "^6.4.5",
+    "@types/node": "^8.0.57",
+    "serverless-domain-manager": "^2.4.0",
+    "serverless-offline": "^3.25.5",
+    "serverless-webpack": "^4.0.0",
+    "ts-loader": "^2.3.7",
+    "typescript": "^2.5.2",
+    "webpack": "^3.6.0"
+  },
+  "author": "Thomas Toye",
+  "license": "GPL-3.0-or-later"
+}

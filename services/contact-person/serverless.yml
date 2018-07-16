@@ -1,0 +1,27 @@
+service:
+  name: hoepel-app-contact-person-service
+
+plugins:
+  - serverless-webpack
+  - serverless-domain-manager
+  - serverless-offline
+
+custom:
+  customDomain:
+    domainName: ${file(../domain.yml):${self:provider.stage}}
+    basePath: 'contact-person'
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-3
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: get
+          path: hello

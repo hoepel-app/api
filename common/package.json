@@ -1,0 +1,39 @@
+{
+  "name": "serverless.hoepel.app-common",
+  "version": "0.0.1",
+  "description": "Serverless hoepel.app backend - Common functions and services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomastoye/serverless.hoepel.app.git"
+  },
+  "author": "Thomas Toye",
+  "license": " GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/thomastoye/serverless.hoepel.app/issues"
+  },
+  "homepage": "https://github.com/thomastoye/serverless.hoepel.app#readme",
+  "devDependencies": {
+    "typescript": "^2.9.2"
+  },
+  "dependencies": {
+    "@types/auth0": "^2.9.4",
+    "@types/aws-lambda": "^8.10.7",
+    "@types/lodash": "^4.14.112",
+    "@types/nano": "^6.4.6",
+    "@types/node": "^10.5.2",
+    "ajv": "^6.5.2",
+    "auth0": "^2.10.0",
+    "aws-lambda": "^0.1.2",
+    "lodash": "^4.17.10",
+    "nano": "^6.4.4",
+    "types.hoepel.app": "^1.0.2",
+    "uuid": "^3.3.2",
+    "xlsx": "^0.13.2"
+  }
+}

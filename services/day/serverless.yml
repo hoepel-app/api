@@ -1,0 +1,95 @@
+service:
+  name: hoepel-app-day-service
+
+plugins:
+  - serverless-webpack
+  - serverless-domain-manager
+  - serverless-offline
+
+custom:
+  customDomain:
+    domainName: ${file(../domain.yml):${self:provider.stage}}
+    basePath: 'day'
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+
+  secrets: ${file(../secrets.yml):${self:provider.stage}}
+
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-3
+
+  environment:
+    DB_HOST: "${self:custom.secrets.DB_HOST}"
+    DB_PORT: "${self:custom.secrets.DB_PORT}"
+    DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
+    DB_USER: "${self:custom.secrets.DB_USER}"
+    DB_PASS: "${self:custom.secrets.DB_PASS}"
+
+functions:
+  authorize:
+    handler: authorize.handler
+
+  allDays:
+    handler: days.all
+    events:
+      - http:
+          method: get
+          path: day
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            parameters:
+              querystrings:
+                url: true
+
+  findDay:
+    handler: days.byId
+    events:
+      - http:
+          method: get
+          path: day/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            paths:
+              id: true
+
+  createDay:
+    handler: days.create
+    events:
+      - http:
+          method: post
+          path: day
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  updateDay:
+    handler: days.update
+    events:
+      - http:
+          method: put
+          path: day/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  deleteDay:
+    handler: days.remove
+    events:
+      - http:
+          method: delete
+          path: day/{id}
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
