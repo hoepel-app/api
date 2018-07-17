@@ -37,7 +37,7 @@ export const authorizeHandler: Handler = (event: CustomAuthorizerEvent, context:
     const token = (event.authorizationToken || '').replace(/Bearer /g, '');
     const apiOptions = getApiOptions(event);
 
-    jwt.verify(token, pemKey, {}, (err, verified: any) => {
+    jwt.verify(token, pemKey, { audience }, (err, verified: any) => {
         if (err) {
           console.error('JWT Error', err, err.stack);
           callback(null, buildIAMPolicy('anonymous', 'Deny', event.methodArn));
