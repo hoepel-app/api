@@ -32,11 +32,9 @@ export const authorizeHandler: Handler = (event: CustomAuthorizerEvent, context:
         throw new Error('AUTH0_AUDIENCE not set')
     }
 
-    console.log(`audience: ${audience}, pem key: ${pemKey}`);
-
     console.log('auth event: ', event);
 
-    const token = event.authorizationToken.replace(/Bearer /g, '');
+    const token = (event.authorizationToken || '').replace(/Bearer /g, '');
     const apiOptions = getApiOptions(event);
 
     jwt.verify(token, pemKey, { audience }, (err, verified: any) => {
