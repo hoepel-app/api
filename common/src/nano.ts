@@ -9,6 +9,10 @@ const buildDbUrl = () => {
   const user = process.env.DB_USER;
   const pass = process.env.DB_PASS;
 
+  if (!host || !port || !https || !user || !pass) {
+    throw new Error(`Not all DB parameters are set! DB_HOST=${host}, DB_PORT=${port}, DB_HTTPS=${process.env.DB_HTTPS}, DB_USER=${user}, DB_PASS=${pass}`);
+  }
+
   const res = new url.URL('http://example.org');
   res.host = host;
   res.port = port || '';
