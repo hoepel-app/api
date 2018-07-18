@@ -34,7 +34,7 @@ export const getAllUsers: Handler = (event: APIGatewayEvent, context: Context, c
 };
 
 export const getUserById: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-  const userId = event.pathParameters['id'];
+  const userId = event.pathParameters['userId'];
 
   management.getUser({ id: userId }, (err, user) => {
     if (err) {
