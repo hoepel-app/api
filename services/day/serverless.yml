@@ -7,14 +7,13 @@ plugins:
   - serverless-offline
 
 custom:
+  stage: ${opt:stage, self:provider.stage}
+  secrets: ${file(../../secrets.yml):${self:custom.stage}}
   customDomain:
     domainName: ${file(../domain.yml):${self:provider.stage}}
     basePath: 'day'
     stage: ${self:provider.stage}
     createRoute53Record: true
-
-  secrets: ${file(../secrets.yml):${self:provider.stage}}
-
 
 provider:
   name: aws
@@ -28,16 +27,22 @@ provider:
     DB_USER: "${self:custom.secrets.DB_USER}"
     DB_PASS: "${self:custom.secrets.DB_PASS}"
 
+    AUTH0_AUDIENCE: "${self:custom.secrets.AUTH0_AUDIENCE}"
+    AUTH0_DOMAIN: "${self:custom.secrets.AUTH0_DOMAIN}"
+    AUTH0_CLIENT_ID: "${self:custom.secrets.AUTH0_CLIENT_ID}"
+    AUTH0_CLIENT_SECRET: "${self:custom.secrets.AUTH0_CLIENT_SECRET}"
+    AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
+
 functions:
   authorize:
-    handler: authorize.handler
+    handler: authorize.authorizeHandler
 
   allDays:
-    handler: days.all
+    handler: handler.all
     events:
       - http:
           method: get
-          path: day
+          path: /
           cors: true
           authorizer:
             name: authorize
@@ -48,11 +53,11 @@ functions:
                 url: true
 
   findDay:
-    handler: days.byId
+    handler: handler.byId
     events:
       - http:
           method: get
-          path: day/{id}
+          path: /{id}
           cors: true
           authorizer:
             name: authorize
@@ -62,33 +67,33 @@ functions:
               id: true
 
   createDay:
-    handler: days.create
+    handler: handler.create
     events:
       - http:
           method: post
-          path: day
+          path: /
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
   updateDay:
-    handler: days.update
+    handler: handler.update
     events:
       - http:
           method: put
-          path: day/{id}
+          path: /{id}
           cors: true
           authorizer:
             name: authorize
             resultTtlInSeconds: 0
 
   deleteDay:
-    handler: days.remove
+    handler: handler.remove
     events:
       - http:
           method: delete
-          path: day/{id}
+          path: /{id}
           cors: true
           authorizer:
             name: authorize

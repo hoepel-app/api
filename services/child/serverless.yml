@@ -7,30 +7,38 @@ plugins:
   - serverless-offline
 
 custom:
+  stage: ${opt:stage, self:provider.stage}
+  secrets: ${file(../../secrets.yml):${self:custom.stage}}
   customDomain:
     domainName: ${file(../domain.yml):${self:provider.stage}}
     basePath: 'child'
     stage: ${self:provider.stage}
     createRoute53Record: true
 
-  secrets: ${file(../secrets.yml):${self:provider.stage}}
-
 provider:
   name: aws
   runtime: nodejs8.10
   region: eu-west-3
-  
+
   environment:
     DB_HOST: "${self:custom.secrets.DB_HOST}"
     DB_PORT: "${self:custom.secrets.DB_PORT}"
     DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
     DB_USER: "${self:custom.secrets.DB_USER}"
     DB_PASS: "${self:custom.secrets.DB_PASS}"
-  
+
+    AUTH0_AUDIENCE: "${self:custom.secrets.AUTH0_AUDIENCE}"
+    AUTH0_DOMAIN: "${self:custom.secrets.AUTH0_DOMAIN}"
+    AUTH0_CLIENT_ID: "${self:custom.secrets.AUTH0_CLIENT_ID}"
+    AUTH0_CLIENT_SECRET: "${self:custom.secrets.AUTH0_CLIENT_SECRET}"
+    AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
+  authorize:
+    handler: authorize.authorizeHandler
+
   allChildren:
-    handler: children.all
+    handler: handler.all
     events:
       - http:
           method: get
@@ -45,7 +53,7 @@ functions:
                 url: true
 
   findChild:
-    handler: children.byId
+    handler: handler.byId
     events:
       - http:
           method: get
@@ -59,7 +67,7 @@ functions:
               id: true
 
   createChild:
-    handler: children.create
+    handler: handler.create
     events:
       - http:
           method: post
@@ -70,7 +78,7 @@ functions:
             resultTtlInSeconds: 0
 
   updateChild:
-    handler: children.update
+    handler: handler.update
     events:
       - http:
           method: put
@@ -81,7 +89,7 @@ functions:
             resultTtlInSeconds: 0
 
   deleteChild:
-    handler: children.remove
+    handler: handler.remove
     events:
       - http:
           method: delete

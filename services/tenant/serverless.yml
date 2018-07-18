@@ -7,9 +7,11 @@ plugins:
   - serverless-offline
 
 custom:
+  stage: ${opt:stage, self:provider.stage}
+  secrets: ${file(../../secrets.yml):${self:custom.stage}}
   customDomain:
     domainName: ${file(../domain.yml):${self:provider.stage}}
-    basePath: 'tenant'
+    basePath: 'tenants'
     stage: ${self:provider.stage}
     createRoute53Record: true
 
@@ -18,10 +20,85 @@ provider:
   runtime: nodejs8.10
   region: eu-west-3
 
+  environment:
+    DB_HOST: "${self:custom.secrets.DB_HOST}"
+    DB_PORT: "${self:custom.secrets.DB_PORT}"
+    DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
+    DB_USER: "${self:custom.secrets.DB_USER}"
+    DB_PASS: "${self:custom.secrets.DB_PASS}"
+
+    AUTH0_AUDIENCE: "${self:custom.secrets.AUTH0_AUDIENCE}"
+    AUTH0_DOMAIN: "${self:custom.secrets.AUTH0_DOMAIN}"
+    AUTH0_CLIENT_ID: "${self:custom.secrets.AUTH0_CLIENT_ID}"
+    AUTH0_CLIENT_SECRET: "${self:custom.secrets.AUTH0_CLIENT_SECRET}"
+    AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
+
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          method: get
-          path: hello
+  authorize:
+    handler: authorize.authorizeHandler
+
+   getAllTenants:
+     handler: handler.getAll
+     events:
+       - http:
+           path: /
+           method: get
+           cors: true
+           authorizer:
+             name: authorize
+             resultTtlInSeconds: 0
+ 
+   getTenantDetails:
+     handler: handler.details
+     events:
+       - http:
+           path: /{name}
+           method: get
+           cors: true
+           authorizer:
+             name: authorize
+             resultTtlInSeconds: 0
+ 
+   createTenant:
+     handler: handler.create
+     events:
+       - http:
+           path: /{name}
+           method: put
+           cors: true
+           authorizer:
+             name: authorize
+             resultTtlInSeconds: 0
+ 
+   createDesignDocs:
+     handler: handler.createDesignDocs
+     events:
+       - http:
+           path: /{name}/generate-design-docs
+           method: post
+           cors: true
+           authorizer:
+             name: authorize
+             resultTtlInSeconds: 0
+ 
+   syncTenantDatabaseTo:
+     handler: handler.syncTo
+     events:
+       - http:
+           path: /sync-to/{name}
+           method: post
+           cors: true
+           authorizer:
+             name: authorize
+             resultTtlInSeconds: 0
+ 
+   syncTenantDatabaseFrom:
+     handler: handler.syncFrom
+     events:
+       - http:
+           path: /sync-from/{name}
+           method: post
+           cors: true
+           authorizer:
+             name: authorize
+             resultTtlInSeconds: 0
