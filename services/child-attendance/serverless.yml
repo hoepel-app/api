@@ -1,5 +1,5 @@
 service:
-  name: hoepel-app-child-attendance-service
+  name: hoepel-app-child-att-service
 
 plugins:
   - serverless-webpack
@@ -10,9 +10,9 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   secrets: ${file(../../secrets.yml):${self:custom.stage}}
   customDomain:
-    domainName: ${file(../domain.yml):${self:provider.stage}}
-    basePath: 'attendance/child'
-    stage: ${self:provider.stage}
+    domainName: ${file(../../domain.yml):${self:custom.stage}}
+    basePath: 'child-attendance'
+    stage: ${self:custom.stage}
     createRoute53Record: true
 
 provider:
@@ -55,7 +55,7 @@ functions:
           path: /day/{dayId}
           method: get
 
-  findAllChildAttendancesPerChild:
+  findAllAttendancesPerChild:
     handler: handler.findAllPerChild
     events:
       - http:

@@ -10,9 +10,9 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   secrets: ${file(../../secrets.yml):${self:custom.stage}}
   customDomain:
-    domainName: ${file(../domain.yml):${self:provider.stage}}
+    domainName: ${file(../../domain.yml):${self:custom.stage}}
     basePath: 'tenants'
-    stage: ${self:provider.stage}
+    stage: ${self:custom.stage}
     createRoute53Record: true
 
 provider:
@@ -37,68 +37,68 @@ functions:
   authorize:
     handler: authorize.authorizeHandler
 
-   getAllTenants:
-     handler: handler.getAll
-     events:
-       - http:
-           path: /
-           method: get
-           cors: true
-           authorizer:
-             name: authorize
-             resultTtlInSeconds: 0
- 
-   getTenantDetails:
-     handler: handler.details
-     events:
-       - http:
-           path: /{name}
-           method: get
-           cors: true
-           authorizer:
-             name: authorize
-             resultTtlInSeconds: 0
- 
-   createTenant:
-     handler: handler.create
-     events:
-       - http:
-           path: /{name}
-           method: put
-           cors: true
-           authorizer:
-             name: authorize
-             resultTtlInSeconds: 0
- 
-   createDesignDocs:
-     handler: handler.createDesignDocs
-     events:
-       - http:
-           path: /{name}/generate-design-docs
-           method: post
-           cors: true
-           authorizer:
-             name: authorize
-             resultTtlInSeconds: 0
- 
-   syncTenantDatabaseTo:
-     handler: handler.syncTo
-     events:
-       - http:
-           path: /sync-to/{name}
-           method: post
-           cors: true
-           authorizer:
-             name: authorize
-             resultTtlInSeconds: 0
- 
-   syncTenantDatabaseFrom:
-     handler: handler.syncFrom
-     events:
-       - http:
-           path: /sync-from/{name}
-           method: post
-           cors: true
-           authorizer:
-             name: authorize
-             resultTtlInSeconds: 0
+  getAllTenants:
+    handler: handler.getAll
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  getTenantDetails:
+    handler: handler.details
+    events:
+      - http:
+          path: /{name}
+          method: get
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  createTenant:
+    handler: handler.create
+    events:
+      - http:
+          path: /{name}
+          method: put
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  createDesignDocs:
+    handler: handler.createDesignDocs
+    events:
+      - http:
+          path: /{name}/generate-design-docs
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  syncTenantDatabaseTo:
+    handler: handler.syncTo
+    events:
+      - http:
+          path: /sync-to/{name}
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  syncTenantDatabaseFrom:
+    handler: handler.syncFrom
+    events:
+      - http:
+          path: /sync-from/{name}
+          method: post
+          cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0

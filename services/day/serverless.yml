@@ -10,9 +10,9 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   secrets: ${file(../../secrets.yml):${self:custom.stage}}
   customDomain:
-    domainName: ${file(../domain.yml):${self:provider.stage}}
+    domainName: ${file(../../domain.yml):${self:custom.stage}}
     basePath: 'day'
-    stage: ${self:provider.stage}
+    stage: ${self:custom.stage}
     createRoute53Record: true
 
 provider:
