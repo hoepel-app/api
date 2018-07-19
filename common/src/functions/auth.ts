@@ -2,8 +2,9 @@ import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { ResponseBuilder } from '../response-builder';
 import * as auth0 from 'auth0';
 import { tryParseJson } from '../try-parse-json';
-import { isString } from 'util';
-import { every } from 'lodash';
+import { every, toPairs, isString } from 'lodash';
+import { Permission } from 'types.hoepel.app/dist/src/permission';
+import { Role } from 'types.hoepel.app/dist/src/role';
 
 // Helpers
 const responseBuilder = new ResponseBuilder();
@@ -123,10 +124,12 @@ export const putTenantData: Handler = (event: APIGatewayEvent, context: Context,
 };
 
 export const getAllPermissions: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-  cb(null, responseBuilder.notImplemented());
+  cb(null, responseBuilder.found(Permission.allByCategory));
 };
 
 export const getAllRoles: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-  cb(null, responseBuilder.notImplemented());
-}
+  cb(null, responseBuilder.found(
+      toPairs(Role.all).map(([key, value]) => { return { level: key, roles: value } } )
+  ));
+};
 
