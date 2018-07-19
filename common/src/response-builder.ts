@@ -60,13 +60,13 @@ export class ResponseBuilder {
   private buildResponse(statusCode: number, status: Status, data?, message?, error?) {
     return {
       statusCode,
-      body: {
+      body: JSON.stringify({
         statusCode,
         status,
         message,
         data,
         error,
-      }
+      }),
     }
   }
 }
