@@ -41,7 +41,7 @@ functions:
     handler: handler.getAll
     events:
       - http:
-          path: age-groups
+          path: /
           method: get
           cors: true
           authorizer:
@@ -52,7 +52,7 @@ functions:
     handler: handler.createOrUpdate
     events:
       - http:
-          path: age-groups
+          path: /
           method: put
           cors: true
           authorizer:
