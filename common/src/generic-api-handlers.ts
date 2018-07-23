@@ -3,6 +3,24 @@ import { verify } from './verify-schema';
 import { ResponseBuilder } from './response-builder';
 import { tryParseJson } from './try-parse-json';
 import { GenericRepository } from './services/generic-repository';
+import { createAuthorizer } from './authorizers/generic-authorizer';
+import { IPermission, Permission } from 'types.hoepel.app/dist/src/permission';
+
+export const getPermissions = (prefix: string): {
+    allPermission: IPermission,
+    byIdPermission: IPermission,
+    createPermission: IPermission,
+    updatePermission: IPermission,
+    deletePermission: IPermission,
+} => {
+  return {
+      allPermission: Permission.parsePermissionName(prefix + 'retrieve'),
+      byIdPermission: Permission.parsePermissionName(prefix + 'retrieve'),
+      createPermission: Permission.parsePermissionName(prefix + 'create'),
+      updatePermission: Permission.parsePermissionName(prefix + 'update'),
+      deletePermission: Permission.parsePermissionName(prefix + 'delete'),
+  };
+};
 
 export class GenericApiHandlers<T> {
   private readonly databasePrefix = 'ic-';
@@ -15,6 +33,13 @@ export class GenericApiHandlers<T> {
     private schemaName: string,
     private viewName: string,
     private kind: string,
+    private permissions: {
+      allPermission: IPermission,
+      byIdPermission: IPermission,
+      createPermission: IPermission,
+      updatePermission: IPermission,
+      deletePermission: IPermission,
+    },
     private designName = 'default',
   ) {
     this.repository = new GenericRepository<T>(viewName, kind, designName);
@@ -43,6 +68,8 @@ export class GenericApiHandlers<T> {
     });
   };
 
+  public allAuthorizer = createAuthorizer(this.permissions.allPermission);
+
   public byId: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
@@ -65,6 +92,8 @@ export class GenericApiHandlers<T> {
       }
     });
   };
+
+  public byIdAuthorizer = createAuthorizer(this.permissions.byIdPermission);
 
   public create: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
@@ -106,6 +135,8 @@ export class GenericApiHandlers<T> {
     });
   };
 
+  public createAuthorizer = createAuthorizer(this.permissions.createPermission);
+
   public update: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
@@ -145,6 +176,8 @@ export class GenericApiHandlers<T> {
     });
   };
 
+  public updateAuthorizer = createAuthorizer(this.permissions.updatePermission);
+
   public delete: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
     // check if tenant query string is set
     if (!event.queryStringParameters || !event.queryStringParameters['tenant']) {
@@ -167,6 +200,8 @@ export class GenericApiHandlers<T> {
       }
     });
   };
+
+  public deleteAuthorizer = createAuthorizer(this.permissions.deletePermission);
 
   private createDbName(tenantName: string) {
     return this.databasePrefix + tenantName;

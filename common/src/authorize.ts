@@ -9,8 +9,8 @@ const getApiOptions = function(event: CustomAuthorizerEvent) {
   return {
     awsAccountId: split[4],
     region: split[3],
-      restApiId: apiGatewayArn[0],
-      stageName: apiGatewayArn[1],
+    restApiId: apiGatewayArn[0],
+    stageName: apiGatewayArn[1],
   };
 };
 

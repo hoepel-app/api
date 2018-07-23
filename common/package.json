@@ -1,6 +1,6 @@
 {
   "name": "serverless.hoepel.app-common",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Serverless hoepel.app backend - Common functions and services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,7 +34,7 @@
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
     "nano": "^6.4.4",
-    "types.hoepel.app": "^1.0.4",
+    "types.hoepel.app": "^1.0.6",
     "uuid": "^3.3.2",
     "xlsx": "^0.13.2"
   }
