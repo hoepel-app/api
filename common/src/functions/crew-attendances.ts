@@ -4,6 +4,8 @@ import { ResponseBuilder } from '../response-builder';
 import { isString } from 'util';
 import { tryParseJson } from '../try-parse-json';
 import { createDbName } from '../create-db-name';
+import { createAuthorizer } from '../authorizers/generic-authorizer';
+import { Permission } from 'types.hoepel.app/dist/src/permission';
 
 // Helpers
 
@@ -235,3 +237,12 @@ export const deleteAttendancesForCrew: Handler = (event: APIGatewayEvent, contex
     }
   });
 };
+
+export const numberOfCrewAttendancesAuthorizer = createAuthorizer(Permission.crewAttendanceRetrieve);
+export const crewAttendancesOnDayAuthorizer = createAuthorizer(Permission.crewAttendanceRetrieve);
+export const findAllPerCrewAuthorizer = createAuthorizer(Permission.crewAttendanceRetrieve);
+export const findAllPerDayAuthorizer = createAuthorizer(Permission.crewAttendanceRetrieve);
+export const findAllRawAuthorizer = createAuthorizer(Permission.crewAttendanceRetrieve);
+export const getAttendancesForCrewAuthorizer = createAuthorizer(Permission.crewAttendanceRetrieve);
+export const addAttendancesForCrewAuthorizer = createAuthorizer(Permission.crewAttendanceCreate);
+export const deleteAttendancesForCrewAuthorizer = createAuthorizer(Permission.crewAttendanceDelete);

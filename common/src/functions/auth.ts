@@ -5,6 +5,7 @@ import { tryParseJson } from '../try-parse-json';
 import { every, toPairs, isString } from 'lodash';
 import { Permission } from 'types.hoepel.app/dist/src/permission';
 import { Role } from 'types.hoepel.app/dist/src/role';
+import { createAuthorizer } from '../authorizers/generic-authorizer';
 
 // Helpers
 const responseBuilder = new ResponseBuilder();
@@ -123,6 +124,8 @@ export const putTenantData: Handler = (event: APIGatewayEvent, context: Context,
   });
 };
 
+// TODO putTenantDataAnyTenant
+
 export const getAllPermissions: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   cb(null, responseBuilder.found(Permission.allByCategory));
 };
@@ -133,3 +136,7 @@ export const getAllRoles: Handler = (event: APIGatewayEvent, context: Context, c
   ));
 };
 
+export const getAllUsersAuthorizer = createAuthorizer(Permission.userRetrieve);
+export const getUserByIdAuthorizer = createAuthorizer(Permission.userRetrieve);
+export const getTenantDataAuthorizer = createAuthorizer(Permission.userRetrieve);
+export const putTenantDataAuthorizer = createAuthorizer(Permission.userPutTenantData);

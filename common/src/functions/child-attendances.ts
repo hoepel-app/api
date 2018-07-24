@@ -4,6 +4,8 @@ import { ResponseBuilder } from '../response-builder';
 import { isString } from 'util';
 import { tryParseJson } from '../try-parse-json';
 import { createDbName } from '../create-db-name';
+import { createAuthorizer } from '../authorizers/generic-authorizer';
+import { Permission } from 'types.hoepel.app/dist/src/permission';
 
 // Helpers
 const childAttendanceService = new ChildAttendanceService();
@@ -236,3 +238,12 @@ export const deleteAttendancesForChild: Handler = (event: APIGatewayEvent, conte
     }
   });
 };
+
+export const numberOfChildAttendancesAuthorizer = createAuthorizer(Permission.childAttendanceRetrieve);
+export const childAttendancesOnDayAuthorizer = createAuthorizer(Permission.childAttendanceRetrieve);
+export const findAllPerChildAuthorizer = createAuthorizer(Permission.childAttendanceRetrieve);
+export const findAllPerDayAuthorizer = createAuthorizer(Permission.childAttendanceRetrieve);
+export const findAllRawAuthorizer = createAuthorizer(Permission.childAttendanceRetrieve);
+export const getAttendancesForChildAuthorizer = createAuthorizer(Permission.childAttendanceRetrieve);
+export const addAttendancesForChildAuthorizer = createAuthorizer(Permission.childAttendanceCreate);
+export const deleteAttendancesForChildAuthorizer = createAuthorizer(Permission.childDelete);
