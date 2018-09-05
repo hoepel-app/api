@@ -35,7 +35,7 @@ provider:
 
 functions:
   authorizer:
-    handler: handler.authorize
+    handler: handler.authorizer
 
   getAllTenants:
     handler: handler.getAll
