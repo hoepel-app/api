@@ -60,8 +60,22 @@ export const authorizer = (event: EventType, context: Context, callback: Callbac
             }
 
             const metadata = verified['https://inschrijven.cloud/app_metadata'];
-            const permissions = (get(metadata['tenants'].filter(t => t.name === tenant), '[0].permissions') || []).map(permission => Permission.parsePermissionName(permission));
-            const roles = (get(metadata['tenants'].filter(t => t.name === tenant), '[0].roles') || []).map(role => Role.parseRoleName(role));
+
+            const permissions = [
+                // permissions for global tenant
+                ...(get(metadata['tenants'].filter(t => t.name === 'global'), '[0].permissions') || []).map(permission => Permission.parsePermissionName(permission)),
+
+                // permissions for tenant in query string
+                ...(get(metadata['tenants'].filter(t => t.name === tenant), '[0].permissions') || []).map(permission => Permission.parsePermissionName(permission))
+            ];
+
+            const roles = [
+                // roles for global tenant
+                ...(get(metadata['tenants'].filter(t => t.name === 'global'), '[0].roles') || []).map(role => Role.parseRoleName(role)),
+
+                // roles for tenant in query string
+                ...(get(metadata['tenants'].filter(t => t.name === tenant), '[0].roles') || []).map(role => Role.parseRoleName(role)),
+            ];
 
             const allowed = checkPermission(event.path, event.httpMethod.toLocaleUpperCase() as Method, permissions, roles, token);
 
