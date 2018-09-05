@@ -29,7 +29,7 @@ export const checkPermission = (url: string, method: Method, ownedPermissions: R
                 > Needs permission '${route.permissionNeeded.id}'
                 > Has permissions: ${ownedPermissions.map(p => p.id)}
                 > Has roles: ${ownedRoles.map(role => role.id)}
-                > Has implied permissions: ${flatMap(ownedRoles.map(role => role.impliedPermissions))}
+                > Has implied permissions: ${flatMap(ownedRoles.map(role => role.impliedPermissions.map(permission => permission.id)))}
                 > JWT: ${userJwt}`,
             );
             return false;
