@@ -3,8 +3,6 @@ import { ResponseBuilder } from '../response-builder';
 import { ExportService } from '../services/export-service';
 import { childRepository } from './children';
 import { createDbName } from '../create-db-name';
-import { createAuthorizer } from '../authorizers/generic-authorizer';
-import { Permission } from 'types.hoepel.app/dist/src/permission';
 
 // Helpers
 
@@ -84,7 +82,3 @@ export const downloadCrew: Handler = (event: APIGatewayEvent, context: Context, 
   });
 
 };
-
-export const downloadChildrenAuthorizer = createAuthorizer(Permission.exportChildren);
-export const downloadChildrenWithRemarksAuthorizer = createAuthorizer(Permission.exportChildren);
-export const downloadCrewAuthorizer = createAuthorizer(Permission.exportCrew);

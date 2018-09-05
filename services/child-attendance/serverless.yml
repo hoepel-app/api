@@ -34,8 +34,8 @@ provider:
     AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
-  authorize:
-    handler: authorize.authorizeHandler
+  authorizer:
+    handler: handler.authorizer
 
   numberOfChildAttendances:
     handler: handler.numberOfChildAttendances
@@ -45,8 +45,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
 
   childAttendancesOnDay:
     handler: handler.childAttendancesOnDay
@@ -54,6 +56,12 @@ functions:
       - http:
           path: /day/{dayId}
           method: get
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
 
   findAllAttendancesPerChild:
     handler: handler.findAllPerChild
@@ -63,15 +71,19 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
       - http:
           path: /all/byChild
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
 
   findAllChildAttendancesPerDay:
     handler: handler.findAllPerDay
@@ -81,8 +93,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
 
   findAllChildAttendancesRaw:
     handler: handler.findAllRaw
@@ -92,8 +106,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
 
   getAttendancesForChild:
     handler: handler.getAttendancesForChild
@@ -103,8 +119,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:retrieve
 
   addAttendancesForChild:
     handler: handler.addAttendancesForChild
@@ -114,8 +132,10 @@ functions:
           method: post
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:create
 
   deleteAttendancesForChild:
     handler: handler.deleteAttendancesForChild
@@ -125,5 +145,7 @@ functions:
           method: delete
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: child-attendance:delete

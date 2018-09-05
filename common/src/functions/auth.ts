@@ -5,7 +5,6 @@ import { tryParseJson } from '../try-parse-json';
 import { every, toPairs, isString } from 'lodash';
 import { Permission } from 'types.hoepel.app/dist/src/permission';
 import { Role } from 'types.hoepel.app/dist/src/role';
-import { createAuthorizer } from '../authorizers/generic-authorizer';
 
 // Helpers
 const responseBuilder = new ResponseBuilder();
@@ -135,8 +134,3 @@ export const getAllRoles: Handler = (event: APIGatewayEvent, context: Context, c
       toPairs(Role.all).map(([key, value]) => { return { level: key, roles: value } } )
   ));
 };
-
-export const getAllUsersAuthorizer = createAuthorizer(Permission.userRetrieve);
-export const getUserByIdAuthorizer = createAuthorizer(Permission.userRetrieve);
-export const getTenantDataAuthorizer = createAuthorizer(Permission.userRetrieve);
-export const putTenantDataAuthorizer = createAuthorizer(Permission.userPutTenantData);

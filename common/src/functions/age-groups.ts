@@ -3,7 +3,6 @@ import { ResponseBuilder } from '../response-builder';
 import { AgeGroupsService } from '../services/age-groups-service';
 import { tryParseJson } from '../try-parse-json';
 import { createDbName } from '../create-db-name';
-import { createAuthorizer } from '../authorizers/generic-authorizer';
 import { Permission } from 'types.hoepel.app/dist/src/permission';
 
 const responseBuilder = new ResponseBuilder();
@@ -66,6 +65,3 @@ export const createOrUpdate: Handler = (event: APIGatewayEvent, context: Context
     }
   });
 };
-
-export const getAllAuthorizer = createAuthorizer(Permission.ageGroupsRead);
-export const createOrUpdateAuthorizer = createAuthorizer(Permission.ageGroupsCreateAndUpdate);

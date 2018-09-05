@@ -1,8 +1,6 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { TenantService } from '../services/tenant-service';
 import { ResponseBuilder } from '../response-builder';
-import { createAuthorizer } from '../authorizers/generic-authorizer';
-import { Permission } from 'types.hoepel.app/dist/src/permission';
 
 // Helpers
 const tenantService = new TenantService();
@@ -67,10 +65,3 @@ export const syncFrom: Handler = (event: APIGatewayEvent, context: Context, cb: 
 
   cb(null, responseBuilder.notImplemented());
 };
-
-export const getAllAuthorizer = createAuthorizer(Permission.listTenants);
-export const detailsAuthorizer = createAuthorizer(Permission.listTenants);
-export const createTenantAuthorizer = createAuthorizer(Permission.createTenant);
-export const createDesignDocsAuthorizer = createAuthorizer(Permission.initTenantDbs);
-export const syncToAuthorizer = createAuthorizer(Permission.syncTenantDb);
-export const syncFromAuthorizer = createAuthorizer(Permission.syncTenantDb);

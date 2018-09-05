@@ -1,5 +1,5 @@
 service:
-  name: hoepel-app-crew-att-service
+  name: hoepel-app-crew-att
 
 plugins:
   - serverless-webpack
@@ -34,8 +34,8 @@ provider:
     AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
-  authorize:
-    handler: authorize.authorizeHandler
+  authorizer:
+    handler: handler.authorizer
 
   numberOfCrewAttendances:
     handler: handler.numberOfCrewAttendances
@@ -45,8 +45,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
 
   crewAttendancesOnDay:
     handler: handler.crewAttendancesOnDay
@@ -54,6 +56,12 @@ functions:
       - http:
           path: /day/{dayId}
           method: get
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
 
   findAllCrewAttendancesPerCrew:
     handler: handler.findAllPerCrew
@@ -63,15 +71,19 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
       - http:
           path: day/attendances/crew/all/byCrew
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
 
   findAllCrewAttendancesPerDay:
     handler: handler.findAllPerDay
@@ -81,8 +93,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
 
   findAllCrewAttendancesRaw:
     handler: handler.findAllRaw
@@ -92,8 +106,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
 
   getAttendancesForCrew:
     handler: handler.getAttendancesForCrew
@@ -103,8 +119,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:retrieve
 
   addAttendancesForCrew:
     handler: handler.addAttendancesForCrew
@@ -114,8 +132,10 @@ functions:
           method: post
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:create
 
   deleteAttendancesForCrew:
     handler: handler.deleteAttendancesForCrew
@@ -125,5 +145,7 @@ functions:
           method: delete
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: crew-attendance:delete

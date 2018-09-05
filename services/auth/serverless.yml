@@ -34,8 +34,8 @@ provider:
     AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
-  authorize:
-    handler: authorize.authorizeHandler
+  authorizer:
+    handler: handler.authorizer
 
   getAllUsers:
     handler: handler.getAllUsers
@@ -45,8 +45,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: user:list
 
   getUserById:
     handler: handler.getUserById
@@ -56,8 +58,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: user:list
 
   getTenantData:
     handler: handler.getTenantData
@@ -67,8 +71,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: user:list
 
   putTenantData:
     handler: handler.putTenantData
@@ -78,8 +84,10 @@ functions:
           method: put
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: users:put-data
 
   getAllPermissions:
     handler: handler.getAllPermissions
@@ -88,17 +96,11 @@ functions:
           path: permissions
           method: get
           cors: true
-          authorizer:
-            name: authorize
-            resultTtlInSeconds: 0
 
   getAllRoles:
     handler: handler.getAllRoles
     events:
       - http:
-          path: auth/roles
+          path: roles
           method: get
           cors: true
-          authorizer:
-            name: authorize
-            resultTtlInSeconds: 0

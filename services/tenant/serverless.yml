@@ -34,8 +34,8 @@ provider:
     AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
-  authorize:
-    handler: authorize.authorizeHandler
+  authorizer:
+    handler: handler.authorize
 
   getAllTenants:
     handler: handler.getAll
@@ -45,8 +45,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: superuser:list-tenants
 
   getTenantDetails:
     handler: handler.details
@@ -56,8 +58,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: superuser:list-tenants
 
   createTenant:
     handler: handler.create
@@ -67,8 +71,10 @@ functions:
           method: put
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: superuser:create-tenant
 
   createDesignDocs:
     handler: handler.createDesignDocs
@@ -78,8 +84,10 @@ functions:
           method: post
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: superuser:init-dbs
 
   syncTenantDatabaseTo:
     handler: handler.syncTo
@@ -89,8 +97,10 @@ functions:
           method: post
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: superuser:sync-db
 
   syncTenantDatabaseFrom:
     handler: handler.syncFrom
@@ -100,5 +110,7 @@ functions:
           method: post
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: superuser:sync-db

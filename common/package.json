@@ -1,6 +1,6 @@
 {
   "name": "serverless.hoepel.app-common",
-  "version": "0.0.11",
+  "version": "0.0.21",
   "description": "Serverless hoepel.app backend - Common functions and services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,12 +28,14 @@
     "@types/lodash": "^4.14.112",
     "@types/nano": "^6.4.6",
     "@types/node": "^10.5.2",
+    "@types/route-parser": "^0.1.1",
     "ajv": "^6.5.2",
-    "auth0": "^2.10.0",
+    "auth0": "^2.11.0",
     "aws-lambda": "^0.1.2",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
     "nano": "^6.4.4",
+    "route-parser": "0.0.5",
     "types.hoepel.app": "^1.0.6",
     "uuid": "^3.3.2",
     "xlsx": "^0.13.2"

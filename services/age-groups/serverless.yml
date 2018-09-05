@@ -34,8 +34,8 @@ provider:
     AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
-  authorize:
-    handler: authorize.authorizeHandler
+  authorizer:
+    handler: handler.authorizer
 
   getAllAgeGroups:
     handler: handler.getAll
@@ -45,8 +45,10 @@ functions:
           method: get
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: age-groups:retrieve
 
   updateAgeGroups:
     handler: handler.createOrUpdate
@@ -56,5 +58,7 @@ functions:
           method: put
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: age-groups:update

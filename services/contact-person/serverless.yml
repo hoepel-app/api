@@ -34,8 +34,9 @@ provider:
     AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
 
 functions:
-  authorize:
-    handler: authorize.authorizeHandler
+  authorizer:
+    handler: handler.authorizer
+
 
   allContactPeople:
     handler: handler.all
@@ -45,12 +46,10 @@ functions:
           path: /
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
-          request:
-            parameters:
-              querystrings:
-                url: true
+            type: request
+            permissionNeeded: contactperson:retrieve
 
   findContactPerson:
     handler: handler.byId
@@ -60,11 +59,10 @@ functions:
           path: /{id}
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
-          request:
-            paths:
-              id: true
+            type: request
+            permissionNeeded: contactperson:retrieve
 
   createContactPerson:
     handler: handler.create
@@ -74,8 +72,10 @@ functions:
           path: /
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: contactperson:create
 
   updateContactPerson:
     handler: handler.update
@@ -85,8 +85,10 @@ functions:
           path: /{id}
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: contactperson:update
 
   deleteContactPerson:
     handler: handler.remove
@@ -96,5 +98,7 @@ functions:
           path: /{id}
           cors: true
           authorizer:
-            name: authorize
+            name: authorizer
             resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: contactperson:delete
