@@ -24,19 +24,22 @@
   "dependencies": {
     "@types/auth0": "^2.9.4",
     "@types/aws-lambda": "^8.10.7",
+    "@types/aws-sdk": "^2.7.0",
     "@types/jsonwebtoken": "^7.2.8",
     "@types/lodash": "^4.14.112",
     "@types/nano": "^6.4.6",
     "@types/node": "^10.5.2",
     "@types/route-parser": "^0.1.1",
+    "@types/uuid": "^3.4.4",
     "ajv": "^6.5.2",
     "auth0": "^2.11.0",
     "aws-lambda": "^0.1.2",
+    "aws-sdk": "^2.309.0",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
     "nano": "^6.4.4",
     "route-parser": "0.0.5",
-    "types.hoepel.app": "^1.0.6",
+    "types.hoepel.app": "^1.0.10",
     "uuid": "^3.3.2",
     "xlsx": "^0.13.2"
   }

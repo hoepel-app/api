@@ -39,6 +39,10 @@ export class ResponseBuilder {
     return this.buildResponse(200, 'success', doc);
   }
 
+  ok() {
+    return this.buildResponse(200, 'success');
+  }
+
   foundBinary(base64Doc, fileName: string) {
     return {
       statusCode: 200,

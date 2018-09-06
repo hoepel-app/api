@@ -1,5 +1,4 @@
 import * as Ajv from 'ajv';
-import * as fs from 'fs';
 import { schema } from 'types.hoepel.app/dist/schema';
 
 export const verify = (schemaName: string, input) => {
