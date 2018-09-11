@@ -1,4 +1,4 @@
-import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
+import { APIGatewayEvent, Handler } from 'aws-lambda';
 import { TenantService } from '../services/tenant-service';
 import { ResponseBuilder } from '../response-builder';
 
@@ -7,61 +7,56 @@ const tenantService = new TenantService();
 const responseBuilder = new ResponseBuilder();
 
 // API
-export const getAll: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-  tenantService.getAll((err, data) => {
-    if (err) {
-      cb(null, responseBuilder.unexpectedError(err));
-    } else {
-      cb(null, responseBuilder.found(data));
-    }
-  })
+export const getAll: Handler = async (event: APIGatewayEvent) => {
+  try {
+    const tenants = await tenantService.getAll();
+    return responseBuilder.found(tenants);
+  } catch (e) {
+    return responseBuilder.unexpectedError(e);
+  }
 };
 
-export const details: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const details: Handler = async (event: APIGatewayEvent) => {
   const tenant = event.pathParameters['name'];
 
-  tenantService.details(tenant, (err, details) => {
-    if (err) {
-      cb(null, responseBuilder.unexpectedError(err));
-    } else {
-      cb(null, responseBuilder.found(details));
-    }
-  });
+  try {
+    const details = await tenantService.details(tenant);
+    return responseBuilder.found(details);
+  } catch (e) {
+    return responseBuilder.unexpectedError(e);
+  }
 };
 
-export const create: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const create: Handler = async (event: APIGatewayEvent) => {
   const tenant = event.pathParameters['name'];
 
-  tenantService.create(tenant, (err, data) => {
-    if (err) {
-      cb(null, responseBuilder.unexpectedError(err));
-    } else {
-      cb(null, responseBuilder.created(tenant));
-    }
-  });
+  try {
+    await tenantService.create(tenant);
+    return responseBuilder.created(tenant);
+  } catch (e) {
+    return responseBuilder.unexpectedError(e);
+  }
 };
 
-export const createDesignDocs: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const createDesignDocs: Handler = async (event: APIGatewayEvent) => {
   const tenant = event.pathParameters['name'];
 
-  tenantService.createDesignDocs(tenant, (err, data) => {
-    if (err) {
-      cb(null, responseBuilder.unexpectedError(err));
-    } else {
-      // cb(null, responseBuilder.updated('design docs'));
-      cb(null, responseBuilder.updated(data));
-    }
-  });
+  try {
+    await tenantService.createDesignDocs(tenant);
+    return responseBuilder.created(tenant);
+  } catch (e) {
+    return responseBuilder.unexpectedError(e);
+  }
 };
 
-export const syncTo: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const syncTo: Handler = async (event: APIGatewayEvent) => {
   const tenant = event.pathParameters['name'];
 
-  cb(null, responseBuilder.notImplemented());
+  return responseBuilder.notImplemented();
 };
 
-export const syncFrom: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const syncFrom: Handler = async (event: APIGatewayEvent) => {
   const tenant = event.pathParameters['name'];
 
-  cb(null, responseBuilder.notImplemented());
+  return responseBuilder.notImplemented();
 };

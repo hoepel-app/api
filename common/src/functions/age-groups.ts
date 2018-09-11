@@ -1,41 +1,33 @@
-import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
+import { APIGatewayEvent, Handler } from 'aws-lambda';
 import { ResponseBuilder } from '../response-builder';
 import { AgeGroupsService } from '../services/age-groups-service';
 import { tryParseJson } from '../try-parse-json';
 import { createDbName } from '../create-db-name';
-import { Permission } from 'types.hoepel.app/dist/src/permission';
 
 const responseBuilder = new ResponseBuilder();
 const ageGroupsService = new AgeGroupsService();
 
-export const getAll: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const getAll: Handler = async (event: APIGatewayEvent) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
-    cb(null, responseBuilder.tenantQsMissingResponse());
-    return;
+    return responseBuilder.tenantQsMissingResponse();
   }
 
   const tenant = event.queryStringParameters['tenant'];
 
-  ageGroupsService.getAll(createDbName(tenant), (err, data) => {
-    if (err) {
-      if (err.error && err.error === 'not_found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        console.error('unexpected error', err);
-        cb(null, responseBuilder.unexpectedError(err));
-      }
-    } else {
-      cb(null, responseBuilder.found(data));
-    }
-  });
+  try {
+    const groups = await ageGroupsService.getAll(createDbName(tenant));
+    return responseBuilder.found(groups);
+  } catch (e) {
+    // TODO not sure about what errors this returns - should map them to responseBuilder.notFound, etc.
+    return responseBuilder.unexpectedError(e);
+  }
 };
 
-export const createOrUpdate: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const createOrUpdate: Handler = async (event: APIGatewayEvent) => {
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
-    cb(null, responseBuilder.tenantQsMissingResponse());
-    return;
+    return responseBuilder.tenantQsMissingResponse();
   }
 
   const tenant = event.queryStringParameters['tenant'];
@@ -46,22 +38,11 @@ export const createOrUpdate: Handler = (event: APIGatewayEvent, context: Context
     || !Array.isArray((tryParseJson(event.body).groups))
     || tryParseJson(event.body).groups.filter(element => !element.name || !element.bornOnOrAfter || !element.bornOnOrBefore).length > 0
   ) {
-    cb(null, responseBuilder.unexpectedError('Invalid body: must be JSON object containing key "groups", an array age groups'));
-    return;
+    return responseBuilder.unexpectedError('Invalid body: must be JSON object containing key "groups", an array age groups');
   }
 
   const ageGroups = tryParseJson(event.body).groups;
 
-  ageGroupsService.createOrUpdate(createDbName(tenant), ageGroups, (err, data) => {
-    if (err) {
-      if (err.error && err.error === 'not_found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        console.error('unexpected error', err);
-        cb(null, responseBuilder.unexpectedError(err));
-      }
-    } else {
-      cb(null, responseBuilder.found(data));
-    }
-  });
+  const groups = await ageGroupsService.createOrUpdate(createDbName(tenant), ageGroups);
+  return responseBuilder.found(groups);
 };

@@ -16,7 +16,17 @@ export class ResponseBuilder {
     return this.buildResponse(400, 'error', undefined, 'Body not set or not valid JSON');
   }
   unexpectedError(error) {
-    return this.buildResponse(500, 'error', undefined, 'Unexpected error', error);
+    console.error('Returning "unexpected error" to client. Error: ', error);
+
+    if (error instanceof Error) {
+      return this.buildResponse(500, 'error', undefined, 'Unexpected error', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack, // not sure if it's a good idea to expose this
+      });
+    } else {
+      return this.buildResponse(500, 'error', undefined, 'Unexpected error', error);
+    }
   }
 
   jsonNotConformingToSchema(errors) {
@@ -64,6 +74,10 @@ export class ResponseBuilder {
   private buildResponse(statusCode: number, status: Status, data?, message?, error?) {
     return {
       statusCode,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
       body: JSON.stringify({
         statusCode,
         status,

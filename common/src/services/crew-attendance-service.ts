@@ -1,7 +1,6 @@
-import { Callback } from '../callback';
-import { nano } from '../nano';
 import { groupBy, mapValues, toPairs, flatMap, map, uniq, fromPairs } from 'lodash';
 import { IDetailedAttendance, IDetailedAttendancesOnDay } from 'types.hoepel.app';
+import { slouch } from '../slouch';
 
 interface PersistedDetailedAttendance {
   /** When the crew was enrolled (intention to participate in an activity)
@@ -56,42 +55,29 @@ const createCrewAttendanceId = (dayId: string, shiftId: string, crewId: string) 
 
 export class CrewAttendanceService {
 
-  public findAttendancesForCrew(opts: { dbName: string, crewId: string }, callback: Callback<IDetailedAttendancesOnDay[]>) {
+  public async findAttendancesForCrew(opts: { dbName: string, crewId: string }): Promise<ReadonlyArray<IDetailedAttendancesOnDay>> {
     // TODO this can be done more efficiently
-    this.findAll({ dbName: opts.dbName }, (err, data) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        if (data[opts.crewId]) {
-          callback(null, data[opts.crewId]);
-        } else {
-          callback(null, []);
-        }
-      }
+    const all = await this.findAll(opts);
+
+    if (all[opts.crewId]) {
+      return all[opts.crewId];
+    } else {
+      return [];
+    }
+  }
+
+  public async findNumberOfCrewAttendances(opts: { dbName: string }): Promise<{ [key: string]: { [ key: string ]: number } }> {
+    const allRaw = await this.findAllRaw(opts);
+
+    const groupedByDay = groupBy(allRaw, row => row.dayId);
+
+    return mapValues(groupedByDay, (value) => {
+      const groupedByShift = groupBy(value, x => x.shiftId);
+      return mapValues(groupedByShift, x => x.length);
     });
   }
 
-  public findNumberOfCrewAttendances(opts: { dbName: string }, callback: Callback<{ [key: string]: { [ key: string ]: number } }>) {
-    this.findAllRaw({ dbName: opts.dbName }, (err, data) => {
-      if(err) {
-        callback(err, null);
-      } else {
-        const groupedByDay = groupBy(data, row => row.dayId);
-
-        const res = mapValues(groupedByDay, (value) => {
-          const groupedByShift = groupBy(value, x => x.shiftId);
-
-          return mapValues(groupedByShift, x => x.length);
-        });
-
-        callback(null, res);
-      }
-    });
-  }
-
-  public addAttendancesForCrew(opts: { dbName: string, crewId: string, dayId: string, shifts: string[] }, callback: Callback<void>) {
-    const db = nano.use(opts.dbName);
-
+  public addAttendancesForCrew(opts: { dbName: string, crewId: string, dayId: string, shifts: string[] }): Promise<void> {
     const docsToInsert = opts.shifts.map(shiftId => {
       const detailedAttendance: PersistedDetailedAttendance = { enrolled: new Date().toISOString() };
 
@@ -102,29 +88,21 @@ export class CrewAttendanceService {
       }
     });
 
-    db.bulk({ docs: docsToInsert },(err, response) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        callback(null, response);
-      }
-    });
+    return slouch.doc.bulkCreateOrUpdate(opts.dbName, docsToInsert);
   }
 
-  public addAttendanceForCrew(opts: {
+  public async addAttendanceForCrew(opts: {
                                  dbName: string,
                                  crewId: string,
                                  dayId: string,
                                  shift: string,
-                               },
-                               callback: Callback<void>,
-  ) {
-    this.addAttendancesForCrew({
+                               }): Promise<void> {
+    return this.addAttendancesForCrew({
       dbName: opts.dbName,
       crewId: opts.crewId,
       dayId: opts.dayId,
       shifts: [ opts.shift ],
-    }, callback)
+    })
   }
 
   public removeAttendancesForCrew(opts: {
@@ -132,158 +110,114 @@ export class CrewAttendanceService {
     crewId: string,
     dayId: string,
     shifts: string[]
-  }, callback: Callback<{ deleted: string[], notFound: string[] }>) {
-    const db = nano.use(opts.dbName);
+  }): Promise<{ deleted: string[], notFound: string[] }> {
 
     const docsToDelete = opts.shifts.map(shiftId =>  createCrewAttendanceId(opts.dayId, shiftId, opts.crewId));
 
-    db.fetchRevs({ keys: docsToDelete }, (err, response) => {
-      if (err) {
-        callback(err, null);
-        return;
+    const deletions = docsToDelete.map(docId => {
+      return slouch.doc
+        .upsert(opts.dbName, { _id: docId, _deleted: true })
+        .then(() => { return { deleted: docId } })
+        .catch(e => { return { notFound: docId } });
+    });
+
+    return Promise.all(deletions).then(results => {
+      return {
+        deleted: results.filter(doc => doc.deleted).map(doc => doc.deleted),
+        notFound: results.filter(doc => doc.notFound).map(doc => doc.notFound)
       }
-
-      const notFound = response.rows.filter(row => row.error === 'not_found').map(row => row.key);
-
-      const toDelete = response.rows.filter(row => row.id && !row.error && row.value && row.value.rev).map(row => {
-        return {
-          _id: row.id,
-          _rev: row.value.rev,
-          _deleted: true,
-        };
-      });
-
-      db.bulk({ docs: toDelete }, (err_bulk, data) => {
-        if (err_bulk) {
-          callback(err_bulk, null);
-        } else {
-          callback(null, { deleted: toDelete.map(doc => doc._id), notFound });
-        }
-      });
-    })
+    });
   }
 
-  public removeAttendanceForCrew(opts: {
+  public async removeAttendanceForCrew(opts: {
     dbName: string,
     crewId: string,
     dayId: string,
     shift: string,
-  }, callback: Callback<{ deleted: string[], notFound: string[] }>) {
-    this.removeAttendancesForCrew(Object.assign(opts, { shifts: [ opts.shift ] }), callback)
+  }): Promise<{ deleted: string[], notFound: string[] }> {
+    return this.removeAttendancesForCrew(Object.assign(opts, { shifts: [ opts.shift ] }));
   }
 
-  public findAll(opts: { dbName: string }, callback: Callback<{ [key: string]: IDetailedAttendancesOnDay[] }>) {
-    const db = nano.use(opts.dbName);
+  public async findAll(opts: { dbName: string }): Promise<{ [key: string]: IDetailedAttendancesOnDay[] }> {
+    const allDocs = [];
+    await slouch.db.view(opts.dbName, '_design/default', 'all-crew-attendances', { include_docs: true }).each(doc => allDocs.push(doc));
 
-    db.view('default', 'all-crew-attendances', { include_docs: true }, (err, data) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        // Get all detailed attendances
-        const detailedAttendances = data.rows.map(row => this.createDetailedAttendancesOnDay(row.id, row.doc.doc));
+    // Get all detailed attendances
+    const detailedAttendances = allDocs.map(row => this.createDetailedAttendancesOnDay(row.id, row.doc.doc));
 
-        // Group by crew id
-        const grouped = groupBy(detailedAttendances, att => att.crewId);
+    // Group by crew id
+    const grouped = groupBy(detailedAttendances, att => att.crewId);
 
-        // reduce all detailed attendances on day for a crew to a single one
-        const object = mapValues(grouped, value => {
-          const detailedAttendancesReduced = mapValues(groupBy(value.map(att => att.detailedAttendancesOnDay), 'day'), arrayOfDetailedAttendancesOnDay => {
-            return flatMap(arrayOfDetailedAttendancesOnDay, element => element.shifts);
-          });
+    // reduce all detailed attendances on day for a crew to a single one
+    const object = mapValues(grouped, value => {
+      const detailedAttendancesReduced = mapValues(groupBy(value.map(att => att.detailedAttendancesOnDay), 'day'), arrayOfDetailedAttendancesOnDay => {
+        return flatMap(arrayOfDetailedAttendancesOnDay, element => element.shifts);
+      });
 
-          return detailedAttendancesReduced;
-        });
+      return detailedAttendancesReduced;
+    });
 
-        // map { a: value } to { day: a, shifts: value }
-        const mapped = map(toPairs(object), array => {
-          return {
-            day: array[0],
-            shifts: array[1],
-          }
-        });
+    // map { a: value } to { day: a, shifts: value }
+    const mapped = map(toPairs(object), array => {
+      return {
+        day: array[0],
+        shifts: array[1],
+      }
+    });
 
-        callback(null, fromPairs(mapped.map(el => [ el.day, el.shifts ])));
+    return fromPairs(mapped.map(el => [ el.day, el.shifts ]));
+  }
+
+  public async findAllPerDay(opts: { dbName: string }): Promise<{ [key: string]: IDetailedAttendancesOnDay }> {
+    const allRaw = await this.findAllRaw(opts);
+
+    const groupedByDay = groupBy(allRaw, obj => obj.dayId);
+
+    const res = mapValues(groupedByDay, value => {
+      const shiftsWithAttendances = toPairs(groupBy(value, obj => obj.shiftId)).map( ([ shiftId, value ]) => {
+        return {
+          shiftId,
+          numAttendances: value.length,
+        }
+      });
+
+      return {
+        shiftsWithAttendances,
+        uniqueCrew: uniq(map(allRaw, obj => obj.crewId)).length,
       }
     });
+
+    // 'day' property is missing but we know it: it's the objects' keys
+    const dayAdded = fromPairs(toPairs(res).map(([ key, value ]) => [ key, Object.assign(value, { day: key }) ]));
+
+    return dayAdded;
   }
 
-  public findAllPerDay(opts: { dbName: string }, callback: Callback<{ [key: string]: IDetailedAttendancesOnDay }>) {    const db = nano.use(opts.dbName);
-    this.findAllRaw({ dbName:opts.dbName }, (err, data) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        const groupedByDay = groupBy(data, obj => obj.dayId);
-
-        const res = mapValues(groupedByDay, value => {
-          const shiftsWithAttendances = toPairs(groupBy(value, obj => obj.shiftId)).map( ([ shiftId, value ]) => {
-            return {
-              shiftId,
-              numAttendances: value.length,
-            }
-          });
-
-          return {
-            shiftsWithAttendances,
-            uniqueCrew: uniq(map(data, obj => obj.crewId)).length,
-          }
-        });
-
-        // 'day' property is missing but we know have: it's the objects' keys
-        const dayAdded = fromPairs(toPairs(res).map(([ key, value ]) => [ key, Object.assign(value, { day: key }) ]));
-
-        callback(null, dayAdded);
-      }
-    });
-  }
-
-  public findAllOnDay(opts: { dbName: string, dayId: string }, callback: Callback<{ [key: string]: IDetailedAttendance[] }>) {
+  public async findAllOnDay(opts: { dbName: string, dayId: string }): Promise<{ [key: string]: IDetailedAttendance[] }> {
     // TODO can be done more efficiently using start_key and end_key but doesn't seem to work with Nano...
     // TODO Currenty very inefficient! Gets ALL docs from DB
 
-    const db = nano.use(opts.dbName);
+    const allDocs = [];
+    await slouch.db.view(opts.dbName, '_design/default', 'all-crew-attendances', { include_docs: true }).each(doc => allDocs.push(doc));
 
-    db.view('default', 'all-crew-attendances', { include_docs: true }, (err, response) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        const data = response.rows.map(row => { return { ids: createFromCrewAttendanceId(row.id), details: row.doc.doc } });
-        const groupedByCrew = groupBy(data.filter(el => el.ids.dayId === opts.dayId), el => el.ids.crewId);
+    const data = allDocs.map(row => { return { ids: createFromCrewAttendanceId(row.id), details: row.doc.doc } });
 
-        const res = toPairs(groupedByCrew).map(( [crewId, docs] ) => {
-          return {
-            crewId,
-            attendances: docs.map(doc => Object.assign(doc.details, { shiftId: doc.ids.shiftId })),
-          }
-        });
+    const groupedByCrew = groupBy(data.filter(el => el.ids.dayId === opts.dayId), el => el.ids.crewId);
 
-        callback(null, fromPairs(res.map(el => [ el.crewId, el.attendances ])));
+    const res = toPairs(groupedByCrew).map(( [crewId, docs] ) => {
+      return {
+        crewId,
+        attendances: docs.map(doc => Object.assign(doc.details, { shiftId: doc.ids.shiftId })),
       }
     });
+
+    return fromPairs(res.map(el => [ el.crewId, el.attendances ]));
   }
 
-  public findAllRaw(opts: { dbName: string }, callback: Callback<[ { dayId: string, shiftId: string, crewId: string } ]>) {
-    const db = nano.use(opts.dbName);
-
-    db.view('default', 'all-crew-attendances', (err, response) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        const data = response.rows.map(row => createFromCrewAttendanceId(row.id));
-        callback(null, data);
-      }
-    });
-  }
-
-  public count(opts: { dbName: string }, callback: Callback<number>) {
-    const db = nano.use(opts.dbName);
-
-    db.view('all-crew-attendances-count', 'default', { group: true, reduce: true }, (err, data) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        callback(null, data.rows[0].value)
-      }
-    });
+  public async findAllRaw(opts: { dbName: string }): Promise<ReadonlyArray<{ dayId: string, shiftId: string, crewId: string }>> {
+    const allDocs = [];
+    await slouch.db.view(opts.dbName, '_design/default', 'all-crew-attendances').each(doc => allDocs.push(createFromCrewAttendanceId(doc.id)));
+    return allDocs;
   }
 
   private createDetailedAttendancesOnDay(crewAttendanceId: string, document: PersistedDetailedAttendance): { crewId: string, detailedAttendancesOnDay: IDetailedAttendancesOnDay } {

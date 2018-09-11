@@ -10,12 +10,13 @@ export const checkPermission = (url: string, method: Method, ownedPermissions: R
     let errors: string[] = [];
 
     const mayAccessResource = find(allRoutes, (route: Route): boolean => {
-        // drop trailing '/' if there is one - lambda gives path as '/child/all', no ending slash
+        // drop trailing '/' if there is one
         const path = last(route.path) === '/' ? route.path.slice(0, -1) : route.path;
+        const urlWithoutTrailingSlash = last(url) === '/' ? url.slice(0, -1) : url;
 
         const routeParser = new RouteParser(path);
 
-        if (!routeParser.match(url) || method !== route.method) {
+        if (!routeParser.match(urlWithoutTrailingSlash) || method !== route.method) {
             // route or method doesn't match
             return false;
         }

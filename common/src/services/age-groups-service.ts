@@ -1,6 +1,5 @@
-import { Callback } from '../callback';
-import { nano } from '../nano';
 import { AgeGroup } from 'types.hoepel.app';
+import { slouch } from '../slouch';
 
 export class AgeGroupsService {
   private static databaseId = "age-group-config";
@@ -8,56 +7,25 @@ export class AgeGroupsService {
 
   constructor() {}
 
-  public getAll(dbName: string, callback: Callback<ReadonlyArray<AgeGroup>>) {
-    const db = nano.use(dbName);
-
-    db.get(AgeGroupsService.databaseId, (err, doc) => {
-      if (err && err.error && err.error === 'not_found') {
-        callback(null, []);
-      } else if (err) {
-        callback(err, null);
+  public getAll(dbName: string): Promise<ReadonlyArray<AgeGroup>> {
+    return slouch.doc.get(dbName, AgeGroupsService.databaseId).then(doc => {
+      if (doc.doc && doc.doc.groups) {
+        return doc.doc.groups;
       } else {
-        console.log(doc);
-
-        if (doc.doc && doc.doc.groups) {
-          callback(null, doc.doc.groups);
-        } else {
-          callback(null, []);
-        }
+        return [];
       }
     });
   }
 
-  public createOrUpdate(dbName: string, allAgeGroups: ReadonlyArray<AgeGroup>, callback: Callback<void>) {
-    const db = nano.use(dbName);
-
+  public createOrUpdate(dbName: string, allAgeGroups: ReadonlyArray<AgeGroup>): Promise<void> {
     const docToUpsert = {
-      '_id': AgeGroupsService.databaseId,
-      doc: {
-        groups: allAgeGroups
-      },
-      kind: AgeGroupsService.kind,
+        '_id': AgeGroupsService.databaseId,
+        doc: {
+            groups: allAgeGroups
+        },
+        kind: AgeGroupsService.kind,
     };
 
-    db.get(AgeGroupsService.databaseId, (errGet, doc) => {
-      if (errGet && errGet.error === 'not_found') {
-        // Doc doesn't exist, create it
-        // TODO what if the 'not_found' was thrown because db doesn't exist?
-
-        db.insert(docToUpsert, (errInsert, resultInsert) => {
-          callback(errInsert, resultInsert);
-        });
-
-      } else if (errGet) {
-        callback(errGet, null);
-
-      } else {
-        // Update doc
-
-        db.insert(Object.assign(docToUpsert,{ _rev: doc._rev }), (errUpdate, resultUpdate) => {
-          callback(null, resultUpdate);
-        });
-      }
-    })
+    return slouch.doc.createOrUpdateIgnoreConflict(dbName, docToUpsert);
   }
 }

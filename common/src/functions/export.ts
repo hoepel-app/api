@@ -11,28 +11,25 @@ const exportService = new ExportService(childRepository);
 
 // API
 
-export const downloadChildren: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const downloadChildren: Handler = async (event: APIGatewayEvent) => {
 
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
-    cb(null, responseBuilder.tenantQsMissingResponse());
-    return;
+    return responseBuilder.tenantQsMissingResponse();
   }
 
   const tenant = event.queryStringParameters['tenant'];
 
-  exportService.downloadChildren(createDbName(tenant), (err, data) => {
-    if (err) {
-      if (err.error && err.error === 'not_found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        cb(null, responseBuilder.unexpectedError(err));
-      }
+  try {
+    const sheet = await exportService.downloadChildren(createDbName(tenant));
+    return responseBuilder.foundBinary(sheet, 'Kinderen.xlsx');
+  } catch (e) {
+    if (e.error && e.error == 'not_found') {
+      return responseBuilder.notFoundResponse();
     } else {
-      cb(null, responseBuilder.foundBinary(data, 'Kinderen.xlsx'));
+      return responseBuilder.unexpectedError(e);
     }
-  });
-
+  }
 };
 
 export const downloadChildrenWithRemarks: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {

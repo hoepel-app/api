@@ -45,8 +45,7 @@ export const authorizer = (event: EventType, context: Context, callback: Callbac
             const tenant = event.queryStringParameters['tenant'];
 
             if (!tenant) {
-                console.log('Tenant not set in query string');
-                callback(null, buildIAMPolicy('anonymous', 'Deny', event.methodArn))
+                console.log('Tenant not set in query string, only taking roles and permissions from global tenant into account');
             }
 
             if (!verified) {
@@ -61,12 +60,15 @@ export const authorizer = (event: EventType, context: Context, callback: Callbac
 
             const metadata = verified['https://inschrijven.cloud/app_metadata'];
 
+            const tenantPermissions = tenant ? (get(metadata['tenants'].filter(t => t.name === tenant), '[0].permissions') || []).map(permission => Permission.parsePermissionName(permission)) : [];
+            const tenantRoles = tenant ? (get(metadata['tenants'].filter(t => t.name === tenant), '[0].roles') || []).map(role => Role.parseRoleName(role)) : [];
+
             const permissions = [
                 // permissions for global tenant
                 ...(get(metadata['tenants'].filter(t => t.name === 'global'), '[0].permissions') || []).map(permission => Permission.parsePermissionName(permission)),
 
                 // permissions for tenant in query string
-                ...(get(metadata['tenants'].filter(t => t.name === tenant), '[0].permissions') || []).map(permission => Permission.parsePermissionName(permission))
+                ...tenantPermissions
             ];
 
             const roles = [
@@ -74,7 +76,7 @@ export const authorizer = (event: EventType, context: Context, callback: Callbac
                 ...(get(metadata['tenants'].filter(t => t.name === 'global'), '[0].roles') || []).map(role => Role.parseRoleName(role)),
 
                 // roles for tenant in query string
-                ...(get(metadata['tenants'].filter(t => t.name === tenant), '[0].roles') || []).map(role => Role.parseRoleName(role)),
+                ...tenantRoles,
             ];
 
             const allowed = checkPermission(event.path, event.httpMethod.toLocaleUpperCase() as Method, permissions, roles, token);
