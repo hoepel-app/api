@@ -7,10 +7,11 @@ const designDocName = '_design/default';
 
 export class TenantService {
   public async getAll(): Promise<ReadonlyArray<string>> {
-    return slouch.system.listDatabases().then(dbs => {
-      const tenants = dbs.filter(db => db.startsWith(dbPrefix)).map(dbName => dbNameToTenantName(dbName));
-      return tenants;
-    });
+    const dbs = [];
+    await slouch.db.all().each(db => dbs.push(db));
+
+    const tenants = dbs.filter(db => db.startsWith(dbPrefix)).map(dbName => dbNameToTenantName(dbName));
+    return tenants;
   }
 
   public details(tenant: string): Promise<void> {
