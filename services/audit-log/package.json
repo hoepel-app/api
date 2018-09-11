@@ -7,17 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "ajv": "^6.5.2",
-    "lodash": "^4.17.10",
-    "nano": "^6.4.4",
-    "serverless.hoepel.app-common": "0.0.22",
-    "source-map-support": "^0.5.0",
-    "uuid": "^3.3.2"
+    "serverless.hoepel.app-common": "0.0.24",
+    "source-map-support": "^0.5.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "0.0.22",
-    "@types/lodash": "^4.14.110",
-    "@types/nano": "^6.4.5",
     "@types/node": "^8.0.57",
     "serverless-domain-manager": "^2.4.0",
     "serverless-offline": "^3.25.5",
