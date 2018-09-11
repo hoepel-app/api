@@ -1,4 +1,4 @@
-import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
+import { APIGatewayEvent, Handler } from 'aws-lambda';
 import { ResponseBuilder } from '../response-builder';
 import { ExportService } from '../services/export-service';
 import { childRepository } from './children';
@@ -32,50 +32,44 @@ export const downloadChildren: Handler = async (event: APIGatewayEvent) => {
   }
 };
 
-export const downloadChildrenWithRemarks: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const downloadChildrenWithRemarks: Handler = async (event: APIGatewayEvent) => {
 
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
-    cb(null, responseBuilder.tenantQsMissingResponse());
-    return;
+    return responseBuilder.tenantQsMissingResponse();
   }
 
   const tenant = event.queryStringParameters['tenant'];
 
-  exportService.downloadChildrenWithRemarks(createDbName(tenant), (err, data) => {
-    if (err) {
-      if (err.error && err.error === 'not_found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        cb(null, responseBuilder.unexpectedError(err));
-      }
+  try {
+    const sheet = await exportService.downloadChildrenWithRemarks(createDbName(tenant));
+    return responseBuilder.foundBinary(sheet, 'Kinderen met opmerking.xlsx');
+  } catch (e) {
+    if (e.error && e.error == 'not_found') {
+      return responseBuilder.notFoundResponse();
     } else {
-      cb(null, responseBuilder.foundBinary(data, 'Kinderen met opmerking.xlsx'));
+      return responseBuilder.unexpectedError(e);
     }
-  });
-
+  }
 };
 
-export const downloadCrew: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const downloadCrew: Handler = async (event: APIGatewayEvent) => {
 
   // check if tenant query string is set
   if (!event.queryStringParameters || !event.queryStringParameters.tenant) {
-    cb(null, responseBuilder.tenantQsMissingResponse());
-    return;
+    return responseBuilder.tenantQsMissingResponse();
   }
 
   const tenant = event.queryStringParameters['tenant'];
 
-  exportService.downloadCrew(createDbName(tenant), (err, data) => {
-    if (err) {
-      if (err.error && err.error === 'not_found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        cb(null, responseBuilder.unexpectedError(err));
-      }
+  try {
+    const sheet = await exportService.downloadCrew(createDbName(tenant));
+    return responseBuilder.foundBinary(sheet, 'Animatoren.xlsx');
+  } catch (e) {
+    if (e.error && e.error == 'not_found') {
+      return responseBuilder.notFoundResponse();
     } else {
-      cb(null, responseBuilder.foundBinary(data, 'Animatoren.xlsx'));
+      return responseBuilder.unexpectedError(e);
     }
-  });
-
+  }
 };
