@@ -34,6 +34,10 @@ export class GenericRepository<T> {
    * @returns Promise<string> Created id
    */
   public async create(dbName: string, entity: T): Promise<string> {
+    // TODO remove id from entity https://codeburst.io/use-es2015-object-rest-operator-to-omit-properties-38a3ecffe90
+    // TODO if entity is provided AND valid UUID, use it as the id to create
+    // TODO or don't accept id from the client at all.. safer.
+
     const id = uuid();
     return slouch.doc.create(dbName, this.createDoc(id, this.kind, entity)).then(() => id);
   }
