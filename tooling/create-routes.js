@@ -58,6 +58,10 @@ const outputFiles = allServiceYmlFiles.map( fileLocation => {
 
   // Generate routes file
   const outputFile = `
+//
+// THIS FILE WAS AUTO-GENERATED - DO NOT EDIT
+//
+
 import { Routes } from '../route.types';
 import { Permission } from 'types.hoepel.app/dist/src/permission';
 
@@ -87,6 +91,7 @@ outputFiles.forEach(file => {
 
 
 // Generate all-routes.ts
+console.log('//\n// THIS FILE WAS AUTO-GENERATED - DO NOT EDIT\n//\n\n')
 console.log(`import { Routes } from './route.types';\n`);
 outputFiles.forEach(file => console.log(`import { routes as ${file[2]} } from './routes/${file[0].slice(0, -3)}'`));
 console.log('\n');
