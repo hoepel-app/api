@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "serverless.hoepel.app-common": "0.0.24",
+    "serverless.hoepel.app-common": "0.0.25",
     "source-map-support": "^0.5.0"
   },
   "devDependencies": {
