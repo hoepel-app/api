@@ -1,6 +1,7 @@
 import { GenericApiHandlers } from '../generic-api-handlers';
+import {IDay} from "types.hoepel.app";
 
-const handlers = new GenericApiHandlers('IDay', 'all-days', 'type/day/v1');
+const handlers = new GenericApiHandlers<IDay>('IDay', 'all-days', 'type/day/v1');
 
 export const all = handlers.all;
 export const byId = handlers.byId;

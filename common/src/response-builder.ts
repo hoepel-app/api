@@ -60,6 +60,8 @@ export class ResponseBuilder {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': 'attachment; filename="' + fileName +'"',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
       },
       isBase64Encoded: true,
     };

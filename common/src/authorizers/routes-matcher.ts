@@ -38,7 +38,9 @@ export const checkPermission = (url: string, method: Method, ownedPermissions: R
     });
 
     if (!mayAccessResource) {
-        errors.map(error => console.log(error));
+      console.log('User may not access resource: route does not match known routes, or no permission to access route.');
+      console.log('Known routes: ', allRoutes);
+      errors.map(error => console.log(error));
     }
 
     return !isUndefined(mayAccessResource);

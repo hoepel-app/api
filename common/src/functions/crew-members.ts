@@ -1,6 +1,7 @@
 import { GenericApiHandlers } from '../generic-api-handlers';
+import {ICrew} from "types.hoepel.app";
 
-const handlers = new GenericApiHandlers('ICrew', 'all-crew', 'type/crew/v1');
+const handlers = new GenericApiHandlers<ICrew>('ICrew', 'all-crew', 'type/crew/v1');
 
 export const all = handlers.all;
 export const byId = handlers.byId;

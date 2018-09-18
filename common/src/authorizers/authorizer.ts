@@ -84,6 +84,9 @@ export const authorizer = (event: EventType, context: Context, callback: Callbac
             if (allowed) {
                 callback(null, buildIAMPolicy(verified.sub, 'Allow', event.methodArn));
             } else {
+                console.log(
+                  `Not allowed to access this resource.\n  Path: ${event.path}\n  Method: {event.method}\n  Permissions: ${permissions}\n  Roles: ${roles}`
+                );
                 console.log('Auth event: ', event);
                 callback(null, buildIAMPolicy('anonymous', 'Deny', event.methodArn));
             }

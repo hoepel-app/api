@@ -1,0 +1,97 @@
+service:
+  name: hoepel-app-files-service
+
+plugins:
+  - serverless-webpack
+  - serverless-domain-manager
+  - serverless-offline
+  - serverless-apigw-binary
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  secrets: ${file(../../secrets.yml):${self:custom.stage}}
+
+  customDomain:
+    domainName: ${file(../../domain.yml):${self:custom.stage}}
+    basePath: 'files'
+    stage: ${self:custom.stage}
+    createRoute53Record: true
+
+  apigwBinary:
+    types:
+      - '*/*'
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-3
+
+  environment:
+    DB_HOST: "${self:custom.secrets.DB_HOST}"
+    DB_PORT: "${self:custom.secrets.DB_PORT}"
+    DB_HTTPS: "${self:custom.secrets.DB_HTTPS}"
+    DB_USER: "${self:custom.secrets.DB_USER}"
+    DB_PASS: "${self:custom.secrets.DB_PASS}"
+
+    AUTH0_AUDIENCE: "${self:custom.secrets.AUTH0_AUDIENCE}"
+    AUTH0_DOMAIN: "${self:custom.secrets.AUTH0_DOMAIN}"
+    AUTH0_CLIENT_ID: "${self:custom.secrets.AUTH0_CLIENT_ID}"
+    AUTH0_CLIENT_SECRET: "${self:custom.secrets.AUTH0_CLIENT_SECRET}"
+    AUTH0_PEM_KEY: "${self:custom.secrets.AUTH0_PEM_KEY}"
+
+functions:
+  authorizer:
+    handler: handler.authorizer
+
+
+  downloadChildren:
+    handler: handler.downloadChildren
+    events:
+      - http:
+          method: get
+          path: /export/children
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: export:children
+
+  downloadChildrenRemarks:
+    handler: handler.downloadChildrenWithRemarks
+    events:
+      - http:
+          method: get
+          path: /export/children/with-remarks
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: export:children
+
+  downloadChildAttendanceReport:
+    handler: handler.childAttendanceReport
+    events:
+      - http:
+          method: get
+          path: /report/child-attendance/{year}
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: report:child-attendance
+
+  downloadCrewAttendanceReport:
+    handler: handler.crewAttendanceReport
+    events:
+      - http:
+          method: get
+          path: /report/crew-attendance/{year}
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: report:crew-attendance
