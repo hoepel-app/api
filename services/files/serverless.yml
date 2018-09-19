@@ -95,3 +95,16 @@ functions:
             resultTtlInSeconds: 0
             type: request
             permissionNeeded: report:crew-attendance
+
+  downloadFiscalCertSheet:
+    handler: handler.fiscalCertificateSheet
+    events:
+      - http:
+          method: get
+          path: /report/fiscal-certificates/{year}
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: export:fiscalcert

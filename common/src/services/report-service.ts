@@ -144,4 +144,5 @@ export class ReportService {
 
     return XLSX.write(wb, {type: 'base64', bookType: 'xlsx'});
   }
+
 }
