@@ -12,7 +12,7 @@ export const getLogs: Handler = (event: APIGatewayEvent, context: Context, cb: C
     // Take query string offset and count into account, perhaps also filtering
 };
 
-export const handleIncomingLog: Handler = (event: SqsEvent, context: Context, cb: Callback) => {
+export const handleIncomingLog: Handler = async (event: SqsEvent) => {
     event.Records.map(record => {
        const entry = tryParseJson(record.body);
 
@@ -30,5 +30,6 @@ export const handleIncomingLog: Handler = (event: SqsEvent, context: Context, cb
         auditLogService.persistLog(entry).catch(err => console.error('Error while persisting log entry:', err));
     });
 
-    cb(null, responseBuilder.ok());
+    // TODO seems like messages don't get deleted? Or perhaps they were badly formatted?
+    return responseBuilder.ok();
 };

@@ -8,8 +8,8 @@ export class AgeGroupsService {
   constructor() {}
 
   public getAll(dbName: string): Promise<ReadonlyArray<AgeGroup>> {
-    return slouch.doc.get(dbName, AgeGroupsService.databaseId).then(doc => {
-      if (doc.doc && doc.doc.groups) {
+    return slouch.doc.getIgnoreMissing(dbName, AgeGroupsService.databaseId).then(doc => {
+      if (doc && doc.doc && doc.doc.groups) {
         return doc.doc.groups;
       } else {
         return [];

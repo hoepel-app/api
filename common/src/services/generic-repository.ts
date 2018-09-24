@@ -1,7 +1,7 @@
-import * as uuid from 'uuid/v4';
 import {slouch} from "../slouch";
+import * as uuid from 'uuid';
 
-export class GenericRepository<T> {
+export class GenericRepository<T extends { id?: string }> {
   constructor(
     private viewName: string,
     private kind: string,
@@ -34,12 +34,12 @@ export class GenericRepository<T> {
    * @returns Promise<string> Created id
    */
   public async create(dbName: string, entity: T): Promise<string> {
-    // TODO remove id from entity https://codeburst.io/use-es2015-object-rest-operator-to-omit-properties-38a3ecffe90
-    // TODO if entity is provided AND valid UUID, use it as the id to create
-    // TODO or don't accept id from the client at all.. safer.
+    // TODO Don't accept id from the client, always regenerate. This has impact on front-end
 
-    const id = uuid();
-    return slouch.doc.create(dbName, this.createDoc(id, this.kind, entity)).then(() => id);
+    const { entityWithoutId, ...oldId } = entity as any;
+    const id = entity.id ? entity.id : uuid.v4();
+
+    return slouch.doc.create(dbName, this.createDoc(id, this.kind, entityWithoutId)).then(() => id);
   }
 
   /**
