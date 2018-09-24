@@ -37,7 +37,7 @@
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
     "route-parser": "0.0.5",
-    "types.hoepel.app": "^1.0.17",
+    "types.hoepel.app": "^1.0.18",
     "uuid": "^3.3.2",
     "xlsx": "^0.13.2"
   }

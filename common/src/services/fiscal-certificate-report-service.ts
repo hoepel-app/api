@@ -1,8 +1,8 @@
 import {GenericRepository} from "./generic-repository";
-import {Child, ContactPerson, Day, DayDate, IChild, IContactPerson, IDay, Price} from "types.hoepel.app";
+import {Address, Child, ContactPerson, Day, DayDate, IChild, IContactPerson, IDay, Price} from "types.hoepel.app";
 import {ChildAttendanceService} from "./child-attendance-service";
 import * as XLSX from "xlsx";
-import {flatMap} from "lodash";
+import {flatMap, head} from "lodash";
 
 interface CertificateRow {
   firstName: string;
@@ -82,11 +82,13 @@ export class FiscalCertificateReportService {
         return [];
       }
 
+      const address = this.getAddress(child, allContactPeople) || new Address({});
+
       return [{
         firstName: child.firstName,
         lastName: child.lastName,
-        street: 'TODO',
-        city: 'TODO',
+        street: (address.street || '') + ' ' + (address.number || ''),
+        city: (address.zipCode || '') + ' ' + (address.city || ''),
         birthDate: child.birthDate ? new DayDate(child.birthDate) : null,
         period: '',
         numberOfDays: attendancesObj[childId].uniqueDays.size,
@@ -98,5 +100,17 @@ export class FiscalCertificateReportService {
 
   private getTotalPrice(prices: ReadonlyArray<Price>): Price {
     return prices.reduceRight((a, b) => a.add(b), new Price({ cents: 0, euro: 0 }));
+  }
+
+  private getAddress(child: Child, contactPeople: ReadonlyArray<ContactPerson>): Address | undefined {
+    if (child.legacyAddress.isValid) {
+      return child.legacyAddress;
+    }
+
+    const person: ContactPerson = head(child.contactPeople.map(relationship => {
+      return contactPeople.find(cp => cp.id === relationship.contactPersonId && cp.address.isValid);
+    }).filter(x => x));
+
+    return person ? person.address : undefined;
   }
 }
