@@ -201,7 +201,7 @@ export class ChildAttendanceService {
     return dayAdded;
   }
 
-  public async findAllOnDay(opts: { dbName: string, dayId: string }): Promise<{ [key: string]: IDetailedAttendance[] }> {
+  public async findAllOnDay(opts: { dbName: string, dayId: string }): Promise<ReadonlyArray<{ childId: string, attendances: ReadonlyArray<IDetailedAttendance> }>> {
     // TODO can be done more efficiently using start_key and end_key but doesn't seem to work with Nano...
     // TODO Currently very inefficient! Gets ALL docs from DB
 
@@ -218,7 +218,9 @@ export class ChildAttendanceService {
       }
     });
 
-    return fromPairs(res.map(el => [ el.childId, el.attendances ]));
+    return res.map(el => {
+      return { childId: el.childId, attendances: el.attendances };
+    });
   }
 
   public async findAllRaw(opts: { dbName: string }): Promise<ReadonlyArray<{ dayId: string, shiftId: string, childId: string }>> {
