@@ -1,6 +1,6 @@
-import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
+import { APIGatewayEvent, Handler } from 'aws-lambda';
 import { ResponseBuilder } from '../response-builder';
-import * as auth0 from 'auth0';
+import { ManagementClient } from 'auth0';
 import { tryParseJson } from '../try-parse-json';
 import { every, toPairs, isString } from 'lodash';
 import { Permission } from 'types.hoepel.app/dist/src/permission';
@@ -11,126 +11,117 @@ const responseBuilder = new ResponseBuilder();
 
 const auth0Audience = process.env.AUTH0_AUDIENCE;
 
-const management = new auth0.ManagementClient({
+const management = new ManagementClient({
   domain: process.env.AUTH0_DOMAIN || 'No domain given',
   clientId: process.env.AUTH0_CLIENT_ID,
   clientSecret: process.env.AUTH0_CLIENT_SECRET,
 });
 
 // API
-export const getAllUsers: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-
-  management.getUsers((err, users) => {
-    if (err) {
+export const getAllUsers: Handler = async (event: APIGatewayEvent) => {
+  return management.getUsers()
+    .then(users => responseBuilder.found(users))
+    .catch(err => {
       if (err.name && err.name.toLowerCase() === 'not found') {
-        cb(null, responseBuilder.notFoundResponse());
+        return responseBuilder.notFoundResponse();
       } else {
         console.error('unexpected error', err);
-        cb(null, responseBuilder.unexpectedError(err));
+        return responseBuilder.unexpectedError(err);
       }
-    } else {
-      cb(null, responseBuilder.found(users));
-    }
-  });
+    });
 };
 
-export const getUserById: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const getUserById: Handler = async (event: APIGatewayEvent) => {
   const userId = event.pathParameters['userId'];
 
-  management.getUser({ id: userId }, (err, user) => {
-    if (err) {
+  return management.getUser({ id: userId })
+    .then(user => responseBuilder.found(user))
+    .catch(err => {
       if (err.name && err.name.toLowerCase() === 'not found') {
-        cb(null, responseBuilder.notFoundResponse());
+        return responseBuilder.notFoundResponse();
       } else {
         console.error('unexpected error', err);
-        cb(null, responseBuilder.unexpectedError(err));
+        return responseBuilder.unexpectedError(err);
       }
-    } else {
-      cb(null, responseBuilder.found(user));
-    }
-  });
+    });
 };
 
-export const getTenantData: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const getTenantData: Handler = async (event: APIGatewayEvent) => {
   const userId = event.pathParameters['userId'];
   const tenant = event.pathParameters['tenant'];
 
 
-  management.getUser({ id: userId }, (err, user) => {
-    if (err) {
-      if (err.name && err.name.toLowerCase() === 'not found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        console.error('unexpected error', err);
-        cb(null, responseBuilder.unexpectedError(err));
-      }
-    } else {
+  return management.getUser({ id: userId })
+    .then(user => {
       if (user.app_metadata && user.app_metadata.tenants && user.app_metadata.tenants.find(el => el.name === tenant)) {
-        cb(null, responseBuilder.found(user.app_metadata.tenants.find(el => el.name === tenant)));
+        return responseBuilder.found(user.app_metadata.tenants.find(el => el.name === tenant));
       } else {
-        cb(null, responseBuilder.notFoundResponse());
+        return responseBuilder.notFoundResponse();
       }
-    }
-  });
+    })
+    .catch(err => {
+      if (err.name && err.name.toLowerCase() === 'not found') {
+        return responseBuilder.notFoundResponse();
+      } else {
+        console.error('unexpected error', err);
+        return responseBuilder.unexpectedError(err);
+      }
+    });
 };
 
-export const putTenantData: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const putTenantData: Handler = async (event: APIGatewayEvent) => {
   const userId = event.pathParameters['userId'];
   const tenant = event.pathParameters['tenant'];
 
-  management.getUser({ id: userId }, (err, user) => {
-    if (err) {
-      if (err.name && err.name.toLowerCase() === 'not found') {
-        cb(null, responseBuilder.notFoundResponse());
-      } else {
-        console.error('unexpected error', err);
-        cb(null, responseBuilder.unexpectedError(err));
-      }
-    } else {
-      // Parse body (roles and permissions)
-      const jsonBody = tryParseJson(event.body);
+  try {
+    const user = await management.getUser({id: userId});
 
-      if(!jsonBody ||
-        !jsonBody.roles ||
-        !jsonBody.permissions ||
-        !Array.isArray(jsonBody.permissions) ||
-        !Array.isArray(jsonBody.roles) ||
-        !every(jsonBody.permissions, isString) ||
-        !every(jsonBody.roles, isString))
-      {
-        cb(null, new ResponseBuilder().bodyMissingOrNotValidJson());
-        return;
-      }
+    // Parse body (roles and permissions)
+    const jsonBody = tryParseJson(event.body);
 
-      // Update metadata
-
-      const newTenantMetadata = { name: tenant, roles: jsonBody.roles, permissions: jsonBody.permissions };
-
-      const tenantsMetadata = (user.app_metadata && user.app_metadata.tenants) ? user.app_metadata.tenants : [];
-      const newtenantsMetadata = [ ...tenantsMetadata.filter(metadata => metadata.name !== tenant), newTenantMetadata ];
-      const newMetadata = Object.assign((user.app_metadata || {}), { tenants: newtenantsMetadata });
-
-      // Make the call to auth0
-      management.updateAppMetadata({ id: userId }, newMetadata, (err, data) => {
-        if (err) {
-          console.error('unexpected error', err);
-          cb(null, responseBuilder.unexpectedError(err));
-        } else {
-          cb(null, responseBuilder.updated(userId));
-        }
-      });
+    if (!jsonBody ||
+      !jsonBody.roles ||
+      !jsonBody.permissions ||
+      !Array.isArray(jsonBody.permissions) ||
+      !Array.isArray(jsonBody.roles) ||
+      !every(jsonBody.permissions, isString) ||
+      !every(jsonBody.roles, isString)) {
+      return responseBuilder.bodyMissingOrNotValidJson();
     }
-  });
+
+    // Update metadata
+
+    const newTenantMetadata = {name: tenant, roles: jsonBody.roles, permissions: jsonBody.permissions};
+
+    const tenantsMetadata = (user.app_metadata && user.app_metadata.tenants) ? user.app_metadata.tenants : [];
+    const newtenantsMetadata = [...tenantsMetadata.filter(metadata => metadata.name !== tenant), newTenantMetadata];
+    const newMetadata = Object.assign((user.app_metadata || {}), {tenants: newtenantsMetadata});
+
+    // Make the call to auth0
+    return management.updateAppMetadata({id: userId}, newMetadata)
+      .then(data => responseBuilder.updated(userId))
+      .catch(err => {
+        console.error('unexpected error', err);
+        return responseBuilder.unexpectedError(err);
+      });
+  } catch (err) {
+    if (err.name && err.name.toLowerCase() === 'not found') {
+      return responseBuilder.notFoundResponse();
+    } else {
+      console.error('unexpected error', err);
+      return responseBuilder.unexpectedError(err);
+    }
+  }
 };
 
 // TODO putTenantDataAnyTenant
 
-export const getAllPermissions: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-  cb(null, responseBuilder.found(Permission.allByCategory));
+export const getAllPermissions: Handler = async (event: APIGatewayEvent) => {
+  return responseBuilder.found(Permission.allByCategory);
 };
 
-export const getAllRoles: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
-  cb(null, responseBuilder.found(
+export const getAllRoles: Handler = async (event: APIGatewayEvent) => {
+  return responseBuilder.found(
       toPairs(Role.all).map(([key, value]) => { return { level: key, roles: value } } )
-  ));
+  );
 };

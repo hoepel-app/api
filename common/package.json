@@ -1,6 +1,6 @@
 {
   "name": "serverless.hoepel.app-common",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "Serverless hoepel.app backend - Common functions and services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,7 +30,7 @@
     "@types/route-parser": "^0.1.1",
     "@types/uuid": "^3.4.4",
     "ajv": "^6.5.2",
-    "auth0": "^2.11.0",
+    "auth0": "^2.10.0",
     "aws-lambda": "^0.1.2",
     "aws-sdk": "^2.309.0",
     "couch-slouch": "^1.0.4",

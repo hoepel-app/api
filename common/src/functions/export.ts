@@ -3,11 +3,12 @@ import { ResponseBuilder } from '../response-builder';
 import { ExportService } from '../services/export-service';
 import { childRepository } from './children';
 import { createDbName } from '../create-db-name';
+import {crewRepository} from "./crew-members";
 
 // Helpers
 
 const responseBuilder = new ResponseBuilder();
-const exportService = new ExportService(childRepository);
+const exportService = new ExportService(childRepository, crewRepository);
 
 // API
 

@@ -2,7 +2,7 @@ service:
   name: hoepel-app-auth-service
 
 plugins:
-  - serverless-webpack
+#  - serverless-webpack
   - serverless-domain-manager
   - serverless-offline
 
@@ -45,7 +45,7 @@ functions:
     handler: handler.getAllUsers
     events:
       - http:
-          path: user
+          path: /user
           method: get
           cors: true
           authorizer:
@@ -58,7 +58,7 @@ functions:
     handler: handler.getUserById
     events:
       - http:
-          path: user/{userId}
+          path: /user/{userId}
           method: get
           cors: true
           authorizer:
@@ -71,7 +71,7 @@ functions:
     handler: handler.getTenantData
     events:
       - http:
-          path: user/{userId}/{tenant}
+          path: /user/{userId}/{tenant}
           method: get
           cors: true
           authorizer:
@@ -84,7 +84,7 @@ functions:
     handler: handler.putTenantData
     events:
       - http:
-          path: user/{userId}/{tenant}
+          path: /user/{userId}/{tenant}
           method: put
           cors: true
           authorizer:
@@ -96,15 +96,15 @@ functions:
   getAllPermissions:
     handler: handler.getAllPermissions
     events:
-      - http:
-          path: permissions
-          method: get
-          cors: true
+    - http:
+        path: /permissions
+        method: get
+        cors: true
 
   getAllRoles:
     handler: handler.getAllRoles
     events:
-      - http:
-          path: roles
-          method: get
-          cors: true
+    - http:
+        path: /roles
+        method: get
+        cors: true

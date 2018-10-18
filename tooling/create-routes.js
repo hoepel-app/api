@@ -13,7 +13,13 @@ const serverlessPathParamToRouteParam = (path) => {
 };
 
 
-const allServiceYmlFiles = fs.readdirSync('../services').map(dir => `../services/${dir}/serverless.yml`);
+const allServiceYmlFiles = fs.readdirSync('../services').map(dir => {
+    if (fs.lstatSync(`../services/${dir}`).isDirectory()) {
+      return `../services/${dir}/serverless.yml`;
+    } else {
+      console.info(`Ignoring ../services/${dir}: not a directory`);
+    }
+  }).filter(x => x);
 
 const allServiceYmlFilesExistance = allServiceYmlFiles.map(file => [ fs.existsSync(file), file ] );
 

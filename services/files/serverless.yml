@@ -61,6 +61,19 @@ functions:
             type: request
             permissionNeeded: export:children
 
+  downloadCrew:
+    handler: handler.downloadCrew
+    events:
+      - http:
+          method: get
+          path: /export/crew
+          cors: true
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 0
+            type: request
+            permissionNeeded: export:crew
+
   downloadChildrenRemarks:
     handler: handler.downloadChildrenWithRemarks
     events:
