@@ -1,11 +1,9 @@
 import * as functions from 'firebase-functions';
 const admin = require('firebase-admin');
 
+const db = admin.firestore();
 
 export const onChildAttendanceCreate = functions.region('europe-west1').firestore.document('child-attendances-add/{docId}').onCreate(async (snap, context) => {
-  admin.initializeApp(functions.config().firebase);
-  const db = admin.firestore();
-  db.settings({ timestampsInSnapshots: true });
 
   const value = snap.data();
 
@@ -55,10 +53,6 @@ export const onChildAttendanceCreate = functions.region('europe-west1').firestor
 });
 
 export const onChildAttendanceDelete = functions.region('europe-west1').firestore.document('child-attendances-delete/{docId}').onCreate(async (snap, context) => {
-  admin.initializeApp(functions.config().firebase);
-  const db = admin.firestore();
-  db.settings({ timestampsInSnapshots: true });
-
   const value = snap.data();
 
   const childId = value.childId;
