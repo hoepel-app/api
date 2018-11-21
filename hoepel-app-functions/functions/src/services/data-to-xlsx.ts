@@ -201,7 +201,7 @@ export const createChildAttendanceXlsx = (allChildren: ReadonlyArray<Child>, shi
 
   return {
     format: 'XLSX',
-    description: `Aanwezigheden kindren ${year}`,
+    description: `Aanwezigheden kinderen ${year}`,
     downloadFileName: `Aanwezigheden kinderen ${year}.xlsx`,
     path,
     localFileName: realFileName,
