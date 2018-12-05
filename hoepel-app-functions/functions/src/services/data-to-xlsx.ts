@@ -1,7 +1,7 @@
 import { tmpdir } from 'os';
 import { join } from 'path';
 import * as XLSX from 'xlsx';
-import { Child, Crew, DayDate, IChild, ICrew, IShift, Shift } from '@hoepel.app/types';
+import { Child, Crew, DayDate, IChild, ICrew, Shift } from '@hoepel.app/types';
 
 export interface LocalFileCreationResult {
   path: string;

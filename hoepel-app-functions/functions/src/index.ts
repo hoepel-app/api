@@ -11,3 +11,4 @@ export * from './child-attendances';
 export * from './crew-attendances';
 export * from './user-create';
 export * from './file-creation';
+export * from './auth';
