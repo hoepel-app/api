@@ -12,13 +12,18 @@
   "main": "lib/index.js",
   "dependencies": {
     "@hoepel.app/types": "^1.0.28",
+    "docxtemplater": "^3.9.5",
     "firebase-admin": "^6.0.0",
     "firebase-functions": "^2.0.3",
+    "jszip": "^2.6.1",
     "xlsx": "^0.14.1"
   },
   "devDependencies": {
     "tslint": "~5.8.0",
     "typescript": "~2.8.3"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": "8"
+  }
 }

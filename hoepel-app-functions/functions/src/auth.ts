@@ -1,9 +1,5 @@
 import * as functions from 'firebase-functions';
-import {Tenant} from "@hoepel.app/types";
-
 const admin = require('firebase-admin');
-
-const db = admin.firestore();
 const auth = admin.auth();
 
 const userIsAdmin: (string) => Promise<boolean>  = async (uid: string) => {
