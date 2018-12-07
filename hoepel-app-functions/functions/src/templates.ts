@@ -41,6 +41,7 @@ export const templateTest = functions
     doc.loadZip(zip);
 
     //set the templateVariables
+    // TODO check template type?
     doc.setData({
       kind_naam: 'Voornaam Achternaam',
       kind_adres: 'Voorbeeld adres',
@@ -70,7 +71,7 @@ export const templateTest = functions
         stack: error.stack,
         properties: error.properties,
       }
-      console.log(JSON.stringify({error: err}));
+      console.error(JSON.stringify({error: err}));
       // The error thrown here contains additional information when logged with JSON.stringify (it contains a property object).
       throw error;
     }
@@ -99,4 +100,33 @@ export const templateTest = functions
     unlinkSync(path);
 
     return { path: 'test-template/' + fileName };
+  });
+
+export const templateDeletionRequest = functions
+  .region('europe-west1')
+  .https.onCall(async (data: { tenant: string, templateFileName: string }, context) => {
+    const uid = context.auth.uid;
+
+    const permissionsDoc = await db.collection('users').doc(uid).collection('tenants').doc(data.tenant).get();
+
+    if (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('template:write')) {
+      return { status: 'error', error: 'No permissions for tenant ' + data.tenant  };
+    }
+
+    const docs = await db.collection('templates').where('fileName', '==', data.templateFileName).where('tenant', '==', data.tenant).get();
+
+    if (docs.empty) {
+      console.warn(`Could not find document for tenant ${data.tenant} with fileName ${data.templateFileName}`);
+      return { status: 'error', error: `Could not find document for tenant ${data.tenant} with fileName ${data.templateFileName}` };
+    }
+
+    if (docs.docs[0].data().tenant !== data.tenant) {
+      console.warn(`Tried to delete ${data.templateFileName} but it does not belong to tenant ${data.tenant}`);
+      return { status: 'error', error: `Tried to delete ${data.templateFileName} but it does not belong to tenant ${data.tenant}` };
+    }
+
+    await db.collection('templates').doc(docs.docs[0].id).delete();
+    await storage.file(data.tenant + '/' + data.templateFileName).delete();
+
+    return { status: 'ok', deletedId: data.templateFileName };
   });
