@@ -189,6 +189,7 @@ export const fileCreationRequest = functions
         expires,
         created: new Date(),
         createdBy,
+        createdByUid: context.auth.uid,
         description: localFile.description,
         format: localFile.format,
         refPath: uploadResult[0].name,
