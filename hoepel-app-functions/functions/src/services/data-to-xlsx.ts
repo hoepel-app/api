@@ -8,7 +8,7 @@ export interface LocalFileCreationResult {
   downloadFileName: string;
   localFileName: string;
   description: string;
-  format: 'XLSX' | 'PDF';
+  format: 'XLSX' | 'PDF' | 'DOCX';
 }
 
 export const childListToXlsx = (children: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {

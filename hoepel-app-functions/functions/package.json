@@ -11,14 +11,16 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@hoepel.app/types": "^1.0.28",
+    "@hoepel.app/types": "^1.0.31",
     "docxtemplater": "^3.9.5",
     "firebase-admin": "^6.0.0",
     "firebase-functions": "^2.0.3",
     "jszip": "^2.6.1",
+    "lodash": "^4.17.11",
     "xlsx": "^0.14.1"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.118",
     "tslint": "~5.8.0",
     "typescript": "~2.8.3"
   },
