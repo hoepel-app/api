@@ -1,7 +1,7 @@
 import { tmpdir } from 'os';
 import { join } from 'path';
 import * as XLSX from 'xlsx';
-import { Child, Crew, DayDate, IChild, ICrew, Shift } from '@hoepel.app/types';
+import {Child, Crew, DayDate, IChild, ICrew, IDetailedChildAttendance, Shift} from '@hoepel.app/types';
 
 export interface LocalFileCreationResult {
   path: string;
@@ -208,7 +208,7 @@ export const createChildAttendanceXlsx = (allChildren: ReadonlyArray<Child>, shi
   };
 };
 
-export const createAllFiscalCertsXlsx = (allChildren: ReadonlyArray<Child>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>, year: number, tenant: string): LocalFileCreationResult => {
+export const createAllFiscalCertsXlsx = (allChildren: ReadonlyArray<Child>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<IDetailedChildAttendance> }>, year: number, tenant: string): LocalFileCreationResult => {
 
   const sortedShifts = Shift.sort(shifts);
 

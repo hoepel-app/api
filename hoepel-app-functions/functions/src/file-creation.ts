@@ -5,7 +5,18 @@ import {
   crewListToXlsx,
   LocalFileCreationResult,
 } from './services/data-to-xlsx';
-import { Child, Crew, DayDate, FileRequestMetadata, FileType, IChild, ICrew, IShift, Shift } from '@hoepel.app/types';
+import {
+  Child,
+  Crew,
+  DayDate,
+  FileRequestMetadata,
+  FileType,
+  IChild,
+  ICrew,
+  IDetailedChildAttendance,
+  IShift,
+  Shift
+} from '@hoepel.app/types';
 import { unlinkSync } from 'fs';
 import * as admin from 'firebase-admin';
 
@@ -67,7 +78,7 @@ const getCrewAttendancesOnShifts = async (shifts: ReadonlyArray<IShift>, tenant:
   });
 };
 
-const getChildAttendancesOnShifts = async (shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>> => {
+const getChildAttendancesOnShifts = async (shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<IDetailedChildAttendance> }>> => {
   const all = await Promise.all(
     shifts.map(shift => db.collection('child-attendances-by-shift').doc(shift.id).get())
   );
