@@ -14,7 +14,7 @@ export const tenantListMembers = functions
     const permissionsDoc = await db.collection('users').doc(uid).collection('tenants').doc(data.tenant).get();
 
     if (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:list-members')) {
-      return {status: 'error', error: 'No permissions for tenant ' + data.tenant};
+      throw new Error(`User has no permission to list all users. uid=${uid}, tenant=${data.tenant}.`);
     }
 
     const allUsers = await db.collection('users').get();
@@ -54,7 +54,7 @@ export const addUserToTenant = functions
     const permissionsDoc = await db.collection('users').doc(uid).collection('tenants').doc(data.tenant).get();
 
     if (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:add-member')) {
-      return {status: 'error', error: 'No permissions for tenant ' + data.tenant};
+      throw new Error(`User has no permission to add member for tenant. uid=${uid}, tenant=${data.tenant}, tried to add uid=${data.uid}`);
     }
 
     // Get all current permissions - new users starts with all permissions for now
@@ -83,7 +83,7 @@ export const removeUserFromTenant = functions
     const permissionsDoc = await db.collection('users').doc(uid).collection('tenants').doc(data.tenant).get();
 
     if (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:remove-member')) {
-      return {status: 'error', error: 'No permissions for tenant ' + data.tenant};
+      throw new Error(`User has no permission to remove member from tenant. uid=${uid}, tenant=${data.tenant}, tried to add uid=${data.uid}`);
     }
 
     // Remove current tenant name in  tenants subcollection of this user
