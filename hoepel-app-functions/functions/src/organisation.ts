@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from 'firebase-admin';
-
-const bucket = 'hoepel-app-templates';
+import {nodemailerMailgun} from "./services/mailgun";
+import {Tenant} from "@hoepel.app/types";
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -97,4 +97,26 @@ export const removeUserFromTenant = functions
     await auth.setCustomUserClaims(data.uid, newClaims);
 
     return { status: 'ok' };
+  });
+
+export const requestCreateNewTenant = functions
+  .region('europe-west1')
+  .https.onCall(async (data: { tenant: Tenant }, context) => {
+
+    await nodemailerMailgun.sendMail({
+      from: 'noreply@mail.hoepel.app',
+      to: 'thomas@toye.io',
+      subject: `Nieuwe organisatie geregistreerd: ${data.tenant.name}`,
+      replyTo: 'help@hoepel.app',
+      text: `Een nieuwe organisatie heeft zich geregistreerd. Naam: ${data.tenant.name}, contact: ${data.tenant.contactPerson.name}. Details als bijlage.`,
+      attachments: [ {
+        content: JSON.stringify(data, null, 2),
+        filename: 'new-tenant-details.txt',
+      }, {
+        content: JSON.stringify(context.auth, null, 2),
+        filename: 'user-details.txt',
+      } ],
+    });
+
+    return {};
   });
