@@ -23,7 +23,7 @@ export const tenantListMembers = functions
       allUsers.docs.map(userDoc => userDoc.ref.collection('tenants').doc(data.tenant).get().then(tenantDoc => {
         return {
           belongsToTenant: tenantDoc.exists,
-          user: Object.assign(userDoc.data(), { uid: userDoc.id }),
+          user: { ...userDoc.data(), uid: userDoc.id },
           permissions: tenantDoc.exists && tenantDoc.data() && tenantDoc.data().permissions as string[] ? tenantDoc.data().permissions : [],
         };
       }))
@@ -80,9 +80,12 @@ export const removeUserFromTenant = functions
   .https.onCall(async (data: { tenant: string, uid: string }, context) => {
     const uid = context.auth.uid;
 
+    // Allow users to delete tenants from themselves
+    const isDeleteTenantFromSelf = data.uid === uid;
+
     const permissionsDoc = await db.collection('users').doc(uid).collection('tenants').doc(data.tenant).get();
 
-    if (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:remove-member')) {
+    if (!isDeleteTenantFromSelf && (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:remove-member'))) {
       throw new Error(`User has no permission to remove member from tenant. uid=${uid}, tenant=${data.tenant}, tried to add uid=${data.uid}`);
     }
 
