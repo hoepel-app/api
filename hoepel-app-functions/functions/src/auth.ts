@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 const admin = require('firebase-admin');
 const auth = admin.auth();
+const db = admin.firestore();
 
 const userIsAdmin: (string) => Promise<boolean>  = async (uid: string) => {
   const user = await auth.getUser(uid);
@@ -39,4 +40,16 @@ export const updateUserTenants = functions.region('europe-west1').https.onCall(a
   const newClaims = Object.assign(user.customClaims || {}, { tenants: data.tenants });
 
   return await auth.setCustomUserClaims(data.uid, newClaims);
+});
+
+export const changeOwnDisplayName = functions.region('europe-west1').https.onCall(async (data: { displayName: string }, context) => {
+  // Update in Firestore
+  await db.collection('users').doc(context.auth.uid).set({ displayName: data.displayName }, { merge: true });
+
+  // Update user property
+  await auth.updateUser(context.auth.uid, {
+    displayName: data.displayName,
+  });
+
+  return {};
 });
