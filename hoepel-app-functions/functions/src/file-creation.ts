@@ -61,7 +61,7 @@ const getShiftsInYear = async (year: number, tenant): Promise<ReadonlyArray<Shif
     .get();
 
   return qs.docs
-    .map(shift => new Shift(Object.assign(shift.data() as IShift, { id: shift.id })))
+    .map(shift => new Shift({ ...(shift.data() as IShift), id: shift.id }))
     .filter(shift => DayDate.fromDayId(shift.dayId).year === year);
 };
 
@@ -129,7 +129,7 @@ export const fileCreationRequest = functions
           }
 
           const allCrewForAtt = (await db.collection('crew-members').where('tenant', '==', data.metadata.tenant).get()).docs
-            .map(snapshot => new Crew(Object.assign(snapshot.data() as ICrew, { id: snapshot.id })))
+            .map(snapshot => new Crew({ ...(snapshot.data() as ICrew), id: snapshot.id }))
             .filter(crew => crew.active);
 
           const shiftsForCrewAtt = await getShiftsInYear(data.metadata.year, data.metadata.tenant);
@@ -145,7 +145,7 @@ export const fileCreationRequest = functions
           }
 
           const allChildrenForChildAtt = (await db.collection('children').where('tenant', '==', data.metadata.tenant).get()).docs
-            .map(snapshot => new Child(Object.assign(snapshot.data() as IChild, { id: snapshot.id })));
+            .map(snapshot => new Child({ ...(snapshot.data() as IChild), id: snapshot.id }));
 
           const shiftsForChildAtt = await getShiftsInYear(data.metadata.year, data.metadata.tenant);
           const childAttendancesForChildAtt = await getChildAttendancesOnShifts(shiftsForChildAtt, data.metadata.tenant);
@@ -159,7 +159,7 @@ export const fileCreationRequest = functions
           }
 
           const allChildrenForFiscalCerts = (await db.collection('children').where('tenant', '==', data.metadata.tenant).get()).docs
-            .map(snapshot => new Child(Object.assign(snapshot.data() as IChild, { id: snapshot.id })));
+            .map(snapshot => new Child({ ...(snapshot.data() as IChild), id: snapshot.id }));
 
           const shiftsForFiscalCerts = await getShiftsInYear(data.metadata.year, data.metadata.tenant);
           const childAttendancesForFiscalCerts = await getChildAttendancesOnShifts(shiftsForFiscalCerts, data.metadata.tenant);

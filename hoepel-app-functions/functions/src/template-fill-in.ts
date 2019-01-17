@@ -38,7 +38,8 @@ const createFile = async (uid: string, createdBy: string, tenant: string, childI
     throw new Error(`Child did not exist or tenant did not match. Tenant ${tenant}, uid: ${uid}, childId: ${childId}`);
   }
 
-  const child = new Child(Object.assign(ichild, { id: childId }));
+  const childWithoutTenant: IChild = _.omit(ichild, 'tenant');
+  const child = new Child({ ...childWithoutTenant, id: childId });
 
   // Get attendances for child
   const attendancesDoc: { attendances: { [key: string]: IDetailedChildAttendance }  } | undefined = (await db.collection('child-attendances-by-child').doc(childId).get()).data() as any;
@@ -47,7 +48,7 @@ const createFile = async (uid: string, createdBy: string, tenant: string, childI
   // Get shifts
   const shiftIds = Object.keys(attendances);
   const shifts = Shift.sort((await db.getAll(...shiftIds.map(id => db.collection('shifts').doc(id))))
-    .map(snapshot => new Shift(Object.assign(snapshot.data(), {id: snapshot.id}) as IShift))
+    .map(snapshot => new Shift({ ...snapshot.data(), id: snapshot.id } as IShift))
     .filter(shift => shift && DayDate.fromDayId(shift.dayId).year === year) // Only keep shifts in this year
   );
 

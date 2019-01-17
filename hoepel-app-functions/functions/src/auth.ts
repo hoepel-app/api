@@ -37,7 +37,7 @@ export const updateUserTenants = functions.region('europe-west1').https.onCall(a
 
   const user = await auth.getUser(data.uid);
 
-  const newClaims = Object.assign(user.customClaims || {}, { tenants: data.tenants });
+  const newClaims = { ...(user.customClaims || {}), tenants: data.tenants };
 
   return await auth.setCustomUserClaims(data.uid, newClaims);
 });

@@ -43,7 +43,7 @@ export const getAllPossibleUsersForTenant = functions
       return {status: 'error', error: 'No permissions for tenant ' + data.tenant};
     }
 
-    return (await db.collection('users').get()).docs.map(user => Object.assign(user.data(), {uid: user.id}));
+    return (await db.collection('users').get()).docs.map(user => ({ ...user.data(), uid: user.id }));
   });
 
 export const addUserToTenant = functions
@@ -69,7 +69,7 @@ export const addUserToTenant = functions
     const user = await auth.getUser(data.uid);
     const tenants = (user.customClaims && (user.customClaims as any).tenants) ? (user.customClaims as any).tenants : {};
     tenants[data.tenant] = true;
-    const newClaims = Object.assign(user.customClaims || {}, { tenants: tenants });
+    const newClaims = { ...(user.customClaims || {}), tenants: tenants };
     await auth.setCustomUserClaims(data.uid, newClaims);
 
     return { status: 'ok' };
@@ -96,7 +96,7 @@ export const removeUserFromTenant = functions
     const user = await auth.getUser(data.uid);
     const tenants = (user.customClaims && (user.customClaims as any).tenants) ? (user.customClaims as any).tenants : {};
     delete tenants[data.tenant];
-    const newClaims = Object.assign(user.customClaims || {}, { tenants: tenants });
+    const newClaims = { ...(user.customClaims || {}), tenants: tenants };
     await auth.setCustomUserClaims(data.uid, newClaims);
 
     return { status: 'ok' };
