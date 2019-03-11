@@ -13,10 +13,12 @@ export const listOrganisations = functions
       throw new Error('Invalid authentication');
     }
 
+    // Hide these organisations
+    const filteredOrganisationIds = ['example', 'demo'];
+
     // TODO Don't show all properties, such as contact person
     const all: ReadonlyArray<Tenant> = (await db.collection('tenants').get()).docs.map(doc => doc.data() as Tenant);
 
-
-    return all;
+    return all.filter(org => filteredOrganisationIds.indexOf(org.id) === -1);
   });
 
