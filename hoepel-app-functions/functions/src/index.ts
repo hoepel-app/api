@@ -17,3 +17,5 @@ export * from './auth';
 export * from './templates';
 export * from './template-fill-in';
 export * from './organisation';
+
+export * from './parents/organisation';
