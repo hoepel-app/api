@@ -19,3 +19,4 @@ export * from './template-fill-in';
 export * from './organisation';
 
 export * from './parents/organisation';
+export * from './parents/children';
