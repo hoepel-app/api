@@ -52,8 +52,9 @@ export const addUserToTenant = functions
     const uid = context.auth.uid;
 
     const permissionsDoc = await db.collection('users').doc(uid).collection('tenants').doc(data.tenant).get();
+    const isAdmin = context.auth.token.isAdmin;
 
-    if (!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:add-member')) {
+    if ((!permissionsDoc.exists || !permissionsDoc.data().permissions.includes('tenant:add-member')) && !isAdmin) {
       throw new Error(`User has no permission to add member for tenant. uid=${uid}, tenant=${data.tenant}, tried to add uid=${data.uid}`);
     }
 
