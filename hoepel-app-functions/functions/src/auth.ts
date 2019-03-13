@@ -3,13 +3,8 @@ const admin = require('firebase-admin');
 const auth = admin.auth();
 const db = admin.firestore();
 
-const userIsAdmin: (string) => Promise<boolean>  = async (uid: string) => {
-  const user = await auth.getUser(uid);
-  return user && user.customClaims && user.customClaims.isAdmin;
-};
-
 export const getAllUsers = functions.region('europe-west1').https.onCall(async (data: { maxResults?: number, pageToken?: string }, context) => {
-  const isAdmin = await userIsAdmin(context.auth.uid);
+  const isAdmin = context.auth.token.isAdmin;
 
   if (!isAdmin) {
     throw Error(`User is not admin. UID: ${context.auth.uid}`);
@@ -19,7 +14,7 @@ export const getAllUsers = functions.region('europe-west1').https.onCall(async (
 });
 
 export const getUserByUid = functions.region('europe-west1').https.onCall(async (uid: string, context) => {
-  const isAdmin = await userIsAdmin(context.auth.uid);
+  const isAdmin = context.auth.token.isAdmin;
 
   if (!isAdmin) {
     throw Error(`User is not admin. UID: ${context.auth.uid}`);
@@ -29,7 +24,7 @@ export const getUserByUid = functions.region('europe-west1').https.onCall(async 
 });
 
 export const updateUserTenants = functions.region('europe-west1').https.onCall(async (data: { uid: string, tenants: { [tenant: string]: string } }, context) => {
-  const isAdmin = await userIsAdmin(context.auth.uid);
+  const isAdmin = context.auth.token.isAdmin;
 
   if (!isAdmin) {
     throw Error(`User is not admin. UID: ${context.auth.uid}`);
