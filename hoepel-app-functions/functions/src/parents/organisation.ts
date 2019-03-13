@@ -14,10 +14,12 @@ export const listOrganisations = functions
     }
 
     // Hide these organisations
-    const filteredOrganisationIds = []; // ['example', 'demo']; // TODO show demo orgs for now
+    const filteredOrganisationIds = ['example', 'demo'];
 
     // TODO Don't show all properties, such as contact person
-    const all: ReadonlyArray<Tenant> = (await db.collection('tenants').get()).docs.map(doc => doc.data() as Tenant);
+    const all: ReadonlyArray<Tenant> = (await db.collection('tenants').get()).docs.map(doc => {
+      return { ...doc.data(), id: doc.id } as Tenant;
+    });
 
     return all.filter(org => filteredOrganisationIds.indexOf(org.id) === -1);
   });
