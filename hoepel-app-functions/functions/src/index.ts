@@ -11,7 +11,6 @@ export * from './crew-attendances';
 export * from './user-create';
 export * from './user-delete';
 export * from './file-creation';
-export * from './auth';
 export * from './templates';
 export * from './template-fill-in';
 export * from './organisation';

@@ -53,6 +53,30 @@ app.get('/user/:uid', firebaseIsAdminMiddleware(db), (req, res) => {
   });
 });
 
+app.put('/user/:uid/display-name', async (req, res) => {
+  try {
+    const displayName = req.body.displayName;
+
+    if (!displayName) {
+      res.status(400).send({ error: 'Missing displayName property in body' });
+      return;
+    }
+
+    // Update in Firestore
+    await db.collection('users').doc(req.params.uid).set({ displayName: displayName }, { merge: true });
+
+    // Update user property
+    await auth.updateUser(req.params.uid, {
+      displayName: displayName,
+    });
+
+    res.status(200).send({});
+  } catch (err) {
+    console.log(`Could not update displayName for user ${req.params.uid}`, err);
+    res.status(500);
+  }
+});
+
 app.get('/who-am-i', (req, res) => {
   res.json({
     data: {
