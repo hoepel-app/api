@@ -1,6 +1,6 @@
 // Based on https://github.com/antonybudianto/express-firebase-middleware
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { verifyJwt } from "../parents/verify-jwt";
+import { verifyJwt } from "../util/verify-jwt";
 
 export const firebaseIsAuthenticatedMiddleware = (admin: any): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction): any => {

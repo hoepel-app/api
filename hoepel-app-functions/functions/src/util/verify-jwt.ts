@@ -62,12 +62,3 @@ export const verifyJwt = async (token: string): Promise<boolean | Object> => {
 
   return result;
 };
-
-/**
- * Get the parent's uid from the parent's JWT. This is the sub field.
- *
- * IMPORTANT: This does not verify the JWT - should be done with verifyJwt()
- *
- * TODO Can this function be removed?
- */
-export const getParentUidFromJwt = (token: string): string => (jwt.decode(token) as any).sub; // sub contains the Firebase uid
