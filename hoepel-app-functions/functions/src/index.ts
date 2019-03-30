@@ -8,11 +8,14 @@ db.settings({timestampsInSnapshots: true});
 
 export * from './child-attendances';
 export * from './crew-attendances';
-export * from './user-create';
-export * from './user-delete';
+
+export * from './user-create'; // TODO move to user-lifecycle.ts
+export * from './user-delete'; // TODO move to user-lifecycle.ts
+
 export * from './file-creation';
 export * from './templates';
 export * from './template-fill-in';
+
 export * from './organisation';
 
 export * from './parents/organisation';

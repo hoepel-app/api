@@ -10,7 +10,7 @@ export const childrenManagedByParent = functions
   .region('europe-west1')
   .https.onCall(async (data: { token: string, organisationId: string }, context) => {
 
-    if (!verifyJwt(data.token)) {
+    if (!await verifyJwt(data.token)) {
       throw new Error('Invalid authentication');
     }
 
@@ -29,7 +29,7 @@ export const updateChildByParent = functions
   .region('europe-west1')
   .https.onCall(async (data: { token: string, organisationId: string, childId: string, child: Child }, context) => {
 
-    if (!verifyJwt(data.token)) {
+    if (!await verifyJwt(data.token)) {
       throw new Error('Invalid authentication');
     }
 
@@ -59,7 +59,7 @@ export const createChildByParent = functions
   .region('europe-west1')
   .https.onCall(async (data: { token: string, organisationId: string, child: Child }, context) => {
 
-    if (!verifyJwt(data.token)) {
+    if (!await verifyJwt(data.token)) {
       throw new Error('Invalid authentication');
     }
 

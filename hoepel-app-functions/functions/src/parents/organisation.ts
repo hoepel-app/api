@@ -9,7 +9,7 @@ export const listOrganisations = functions
   .region('europe-west1')
   .https.onCall(async (data: { token: string }, context) => {
 
-    if (!verifyJwt(data.token)) {
+    if (!await verifyJwt(data.token)) {
       throw new Error('Invalid authentication');
     }
 
@@ -28,7 +28,7 @@ export const organisationDetails = functions
   .region('europe-west1')
   .https.onCall(async (data: { token: string, id: string }, context) => {
 
-    if (!verifyJwt(data.token)) {
+    if (! await verifyJwt(data.token)) {
       throw new Error('Invalid authentication');
     }
 
