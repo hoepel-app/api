@@ -15,7 +15,7 @@ export const firebaseHasPermissionMiddleware = (db: admin.firestore.Firestore, p
     const tenant = req.params.tenant;
 
     if (!uid) {
-      res.status(401).send({ error: 'No uid found' });
+      res.status(401).json({ error: 'No uid found' });
       return;
     }
 
@@ -26,7 +26,7 @@ export const firebaseHasPermissionMiddleware = (db: admin.firestore.Firestore, p
     }
 
     if (!tenant) {
-      res.status(500).send({ error: 'No tenant set and not admin or admin not allowed' });
+      res.status(500).json({ error: 'No tenant set and not admin or admin not allowed' });
       console.error(`No tenant found in request for user ${uid}, isAdmin=${isAdmin}, allowAdmin=${allowAdmin}`);
       return;
     }
@@ -39,7 +39,7 @@ export const firebaseHasPermissionMiddleware = (db: admin.firestore.Firestore, p
         !permissionsDoc.data().permissions ||
         !permissionsDoc.data().permissions.includes(permissionNeeded))
       {
-        res.status(401).send({
+        res.status(401).json({
           error: 'No permission to access this resource',
           permissionsDocExists: permissionsDoc.exists,
           permissionNeeded: permissionNeeded,
@@ -51,7 +51,7 @@ export const firebaseHasPermissionMiddleware = (db: admin.firestore.Firestore, p
       }
 
     }).catch(err => {
-      res.status(500).send({ error: 'Unexpected error checking permission' });
+      res.status(500).json({ error: 'Unexpected error checking permission' });
       console.error(`Error while getting permission doc for user with uid ${uid} for tenant ${tenant}`, err);
     });
   }

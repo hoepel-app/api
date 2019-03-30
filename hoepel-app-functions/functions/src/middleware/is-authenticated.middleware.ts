@@ -13,10 +13,10 @@ export const firebaseIsAuthenticatedMiddleware = (admin: any): RequestHandler =>
           next();
         })
         .catch(err => {
-          res.status(401).send({ error: 'Could not verify token' });
+          res.status(401).json({ error: 'Could not verify token' });
         });
     } else {
-      res.status(401).send({ error: 'Authorization not found' });
+      res.status(401).json({ error: 'Authorization not found' });
     }
   }
 };
@@ -40,10 +40,10 @@ export const firebaseIsAuthenticatedSpeelpleinwerkingDotComMiddleware = (admin: 
           }
         })
         .catch(err => {
-          res.status(401).send({ error: 'Could not verify token' });
+          res.status(401).json({ error: 'Could not verify token' });
         });
     } else {
-      res.status(401).send({ error: 'Authorization not found' });
+      res.status(401).json({ error: 'Authorization not found' });
     }
   }
 };

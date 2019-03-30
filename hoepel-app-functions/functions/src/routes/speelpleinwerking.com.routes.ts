@@ -30,7 +30,7 @@ router.get('/organisation/:organisation', async (req, res) => {
   if (org.exists) {
     res.json(org.data());
   } else {
-    res.sendStatus(404);
+    res.status(404).json({});
   }
 });
 
@@ -52,7 +52,7 @@ router.get('/organisation/:organisation/children/managed-by/:parentUid', async (
   const organisationId = req.params.organisation;
 
   if (parentUid !== res.locals.user.uid) {
-    res.send(403).json({ error: 'You can only view children managed by yourself' });
+    res.json(403).json({ error: 'You can only view children managed by yourself' });
     return;
   }
 
@@ -88,7 +88,7 @@ router.put('/organisation/:organisation/children/:child', async (req, res) => {
 
     await db.collection('children').doc(childId).set(newChildWithTenant);
 
-    res.sendStatus(200);
+    res.status(200).json({});
   }
 });
 
@@ -104,5 +104,5 @@ router.post('/organisation/:organisation/children', async (req, res) => {
 
   await db.collection('children').add(newChildWithTenant);
 
-  res.sendStatus(200);
+  res.status(200).json({});
 });
