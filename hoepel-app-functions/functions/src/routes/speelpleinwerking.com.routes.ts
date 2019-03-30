@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as admin from "firebase-admin";
-import { Tenant } from "@hoepel.app/types";
+import { Child, IChild, Tenant } from "@hoepel.app/types";
 import { firebaseIsAuthenticatedSpeelpleinwerkingDotComMiddleware } from "../middleware/is-authenticated.middleware";
 
 const db = admin.firestore();
@@ -31,4 +31,22 @@ router.get('/organisation/:organisation', async (req, res) => {
   } else {
     res.sendStatus(404);
   }
+});
+
+router.get('/organisation/:organisation/children/managed-by/:parentUid', async (req, res) => {
+  const parentUid = req.params.parentUid;
+  const organisationId = req.params.organisation;
+
+  if (parentUid !== res.locals.user.uid) {
+    res.send(403).json({ error: 'You can only view children managed by yourself' });
+    return;
+  }
+
+  const children: ReadonlyArray<Child> = (await db.collection('children')
+      .where('managedByParents', 'array-contains', parentUid)
+      .where('tenant', '==', organisationId)
+      .get()
+  ).docs.map(snapshot => new Child({ ...snapshot.data() as IChild, id: snapshot.id }));
+
+  res.json(children);
 });

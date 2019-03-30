@@ -35,6 +35,7 @@ export const firebaseIsAuthenticatedSpeelpleinwerkingDotComMiddleware = (admin: 
             throw new Error('Could not verify token');
           } else {
             res.locals.user = decodedToken;
+            res.locals.user.uid = (decodedToken as any).user_id;
             next();
           }
         })
