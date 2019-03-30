@@ -36,15 +36,18 @@ const aud = 'speelpleinwerking-com';
 
 /**
  * Verifies that a JWT token is valid for the speelpleinwerking.com project
+ *
+ * @return false in case JWT is invalid, decoded JWT if JWT is valid
  */
-export const verifyJwt = async (token: string): Promise<boolean> => {
+export const verifyJwt = async (token: string): Promise<boolean | Object> => {
   const jwtKeys = await getJwtKeys();
 
+  let result = {};
   const errors = [];
 
   const isValid = jwtKeys.map(cert => {
     try {
-      jwt.verify(token, cert, {audience: aud, issuer: iss, algorithms: [algorithm]});
+      result = jwt.verify(token, cert, {audience: aud, issuer: iss, algorithms: [algorithm]});
       return true;
     } catch (e) {
       errors.push(e);
@@ -54,9 +57,10 @@ export const verifyJwt = async (token: string): Promise<boolean> => {
 
   if (!isValid) {
     console.error(`Invalid token! Token:\n ${token}\n\nKeys used:\n${jwtKeys.join('\n')}\n\nErrors: `, errors);
+    return false; // Instead of returning false, this could reject the promise?
   }
 
-  return isValid;
+  return result;
 };
 
 /**
