@@ -34,6 +34,19 @@ router.get('/organisation/:organisation', async (req, res) => {
   }
 });
 
+router.get('/organisation/:organisation/children/managed-by/me', async (req, res) => {
+  const parentUid = res.locals.user.uid;
+  const organisationId = req.params.organisation;
+
+  const children: ReadonlyArray<Child> = (await db.collection('children')
+      .where('managedByParents', 'array-contains', parentUid)
+      .where('tenant', '==', organisationId)
+      .get()
+  ).docs.map(snapshot => new Child({ ...snapshot.data() as IChild, id: snapshot.id }));
+
+  res.json(children);
+});
+
 router.get('/organisation/:organisation/children/managed-by/:parentUid', async (req, res) => {
   const parentUid = req.params.parentUid;
   const organisationId = req.params.organisation;
