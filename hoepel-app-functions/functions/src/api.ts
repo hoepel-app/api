@@ -16,7 +16,7 @@ const userService = new UserService(db, auth);
 app.use(cors({origin: true}));
 
 // Parse Firebase tokens
-app.use(firebaseIsAuthenticatedMiddleware(admin));
+app.use('/user', firebaseIsAuthenticatedMiddleware(admin));
 
 
 app.put('/user/accept/privacy-policy', (req, res) => userService.acceptPrivacyPolicy(res.locals.user.uid).then(_ => {
@@ -48,7 +48,7 @@ app.get('/user/:uid', firebaseIsAdminMiddleware(db), (req, res) => {
   auth.getUser(req.params.uid).then(data => {
     res.send({ data });
   }).catch(err => {
-    console.error('Could not get all users', err);
+    console.error(`Could not get user with id ${req.params.uid}`, err);
     res.sendStatus(500);
   });
 });
