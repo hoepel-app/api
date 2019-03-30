@@ -2,13 +2,20 @@ import { firebaseIsAdminMiddleware } from "../middleware/has-permission.middlewa
 import { Router } from 'express';
 import { UserService } from "../services/user.service";
 import * as admin from "firebase-admin";
+import { firebaseIsAuthenticatedMiddleware } from "../middleware/is-authenticated.middleware";
 
 const db = admin.firestore();
 const auth = admin.auth();
-
 const userService = new UserService(db, auth);
 
 export const router = Router();
+
+
+// Parse Firebase tokens
+router.use(firebaseIsAuthenticatedMiddleware(admin));
+
+
+// Routes
 
 router.put('/accept/privacy-policy', (req, res) => userService.acceptPrivacyPolicy(res.locals.user.uid).then(_ => {
   res.status(200).send({});
