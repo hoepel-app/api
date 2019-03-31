@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import {nodemailerMailgun} from "./services/mailgun";
+import {nodemailerMailgun} from "../services/mailgun";
 import * as admin from "firebase-admin";
 
 const db = admin.firestore();

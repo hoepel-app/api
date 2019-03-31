@@ -6,11 +6,8 @@ admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 db.settings({timestampsInSnapshots: true});
 
-export * from './child-attendances';
-export * from './crew-attendances';
-
-export * from './user-create'; // TODO move to user-lifecycle.ts
-export * from './user-delete'; // TODO move to user-lifecycle.ts
+export * from './firestore-events/';
+export * from './user-events/';
 
 export * from './file-creation';
 export * from './templates';
