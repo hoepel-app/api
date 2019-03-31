@@ -16,6 +16,4 @@ export * from './file-creation';
 export * from './templates';
 export * from './template-fill-in';
 
-export * from './organisation';
-
 export * from './api';
