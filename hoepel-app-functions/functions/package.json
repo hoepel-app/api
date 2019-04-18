@@ -12,6 +12,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "@hoepel.app/types": "^1.1.12",
+    "@slack/client": "^5.0.1",
     "cors": "^2.8.5",
     "docxtemplater": "^3.9.5",
     "express": "^4.16.4",
@@ -28,7 +29,7 @@
     "@types/lodash": "^4.14.118",
     "@types/nodemailer": "^4.6.5",
     "tslint": "~5.8.0",
-    "typescript": "~2.8.3"
+    "typescript": "^3.4.3"
   },
   "private": true,
   "engines": {
