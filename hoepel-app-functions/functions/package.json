@@ -11,7 +11,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@hoepel.app/types": "^1.1.12",
+    "@hoepel.app/types": "^1.1.14",
     "@slack/client": "^5.0.1",
     "cors": "^2.8.5",
     "docxtemplater": "^3.9.5",

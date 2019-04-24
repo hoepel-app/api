@@ -250,7 +250,7 @@ export const createAllFiscalCertsXlsx = (allChildren: ReadonlyArray<Child>, shif
   return {
     format: 'XLSX',
     description: `Data fiscale attesten ${year}`,
-    downloadFileName: `Data fiscale attesten${year}.xlsx`,
+    downloadFileName: `Data fiscale attesten ${year}.xlsx`,
     path,
     localFileName: realFileName,
   };

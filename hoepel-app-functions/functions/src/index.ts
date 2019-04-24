@@ -11,7 +11,6 @@ export * from './user-events/';
 export * from './pubsub-events/';
 
 // TODO these need to be moved to api function
-export * from './file-creation';
 export * from './templates';
 export * from './template-fill-in';
 

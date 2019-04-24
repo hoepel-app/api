@@ -1,6 +1,6 @@
-import * as express from "express";
+import * as express from 'express';
 import * as cors from 'cors';
-import * as functions from "firebase-functions";
+import * as functions from 'firebase-functions';
 
 const app = express();
 
@@ -11,7 +11,10 @@ app.use(cors({origin: true}));
 app.use('/speelpleinwerking.com', require('./routes/speelpleinwerking.com.routes').router);
 app.use('/user', require('./routes/user.routes').router);
 app.use('/organisation', require('./routes/organisation.routes').router);
-
+app.use('/:tenant/files', (req, res, next) => {
+  res.locals.tenant = req.params.tenant;
+  next();
+}, require('./routes/files.routes').router);
 
 app.get('/who-am-i', (req, res) => {
   res.json({
