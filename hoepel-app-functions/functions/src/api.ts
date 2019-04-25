@@ -1,8 +1,12 @@
 import * as express from 'express';
 import * as cors from 'cors';
 import * as functions from 'firebase-functions';
+import { logRequestStart } from './util/log-request';
 
 const app = express();
+
+// Log all requests
+app.use(logRequestStart);
 
 // Automatically allow cross-origin requests
 app.use(cors({origin: true}));
