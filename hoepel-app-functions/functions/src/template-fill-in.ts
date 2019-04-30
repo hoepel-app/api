@@ -159,6 +159,7 @@ const createFile = async (uid: string, createdBy: string, tenant: string, childI
   return docToSave;
 };
 
+// POST /:tenant/templates/:templateId/fill-in
 export const fillInHealthInsuranceCertificate = functions
   .region('europe-west1')
   .https.onCall(async (data: { tenant: string, templateFileName: string, childId: string, year: number }, context) => {
@@ -174,6 +175,7 @@ export const fillInHealthInsuranceCertificate = functions
     );
   });
 
+// POST /:tenant/templates/:templateId/fill-in
 export const fillInFiscalCertificate = functions
   .region('europe-west1')
   .https.onCall(async (data: { tenant: string, templateFileName: string, childId: string, year: number }, context) => {

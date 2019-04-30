@@ -14,7 +14,7 @@ const bucket = 'hoepel-app-templates';
 const db = admin.firestore();
 const storage = admin.storage().bucket(bucket);
 
-
+// POST /:tenant/templates/:templateId/test
 export const templateTest = functions
   .region('europe-west1')
   .https.onCall(async (data: { tenant: string, templateFileName: string }, context) => {
@@ -102,6 +102,7 @@ export const templateTest = functions
     return { path: 'test-template/' + fileName };
   });
 
+// DELETE /:tenant/templates/:templateId
 export const templateDeletionRequest = functions
   .region('europe-west1')
   .https.onCall(async (data: { tenant: string, templateFileName: string }, context) => {
