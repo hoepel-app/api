@@ -12,7 +12,7 @@ export const firebaseHasPermissionMiddleware = (db: admin.firestore.Firestore, p
   return (req: Request, res: Response, next: NextFunction): void => {
     const uid  = res.locals.user.uid;
     const isAdmin = !!res.locals.user.isAdmin;
-    const tenant = req.params.tenant;
+    const tenant = req.params.tenant || res.locals.tenant;
 
     if (!uid) {
       res.status(401).json({ error: 'No uid found' });
