@@ -9,23 +9,6 @@ import {promisify} from 'util';
 const writeFile = promisify(fsWriteFile);
 const unlink = promisify(fsUnlink);
 
-// declare class Docxtemplater {
-//   constructor();
-//
-//   loadZip(zip: JSZip): void;
-//   setData(tags: { [key: string]: string }): void;
-//   render(): void;
-//   getZip(): JSZip;
-//   attachModule(module: any);
-//   setOptions(options: {
-//     nullGetter?: (part) => string
-//     xmlFileNames?: ReadonlyArray<string>,
-//     parser?: (tag: string) => string,
-//     linebreaks: boolean,
-//     delimiters?: { start: string, end: string },
-//   }): void;
-// }
-
 interface CertificateTemplateFillInData {
   kind_naam: string,
   kind_adres: string,
@@ -103,6 +86,23 @@ export class TemplateService {
     await unlink(path);
 
     return { path: 'test-template/' + fileName };
+  }
+
+  async deleteTemplate(tenant: string, templateFileName: string) {
+    const docs = await this.db.collection('templates').where('fileName', '==', templateFileName).where('tenant', '==', tenant).get();
+
+    if (docs.empty) {
+      throw new Error(`Could not find template to delete for tenant ${tenant} with fileName ${templateFileName}`);
+    }
+
+    if (docs.docs[0].data().tenant !== tenant) {
+      throw new Error(`Tried to delete ${templateFileName} but it does not belong to tenant ${tenant}`);
+    }
+
+    await this.db.collection('templates').doc(docs.docs[0].id).delete();
+    await this.storage.file(tenant + '/' + templateFileName).delete();
+
+    return { deletedId: templateFileName };
   }
 
   /**
