@@ -10,7 +10,4 @@ export * from './firestore-events/';
 export * from './user-events/';
 export * from './pubsub-events/';
 
-// TODO this need to be moved to api function
-export * from './template-fill-in';
-
 export * from './api';
