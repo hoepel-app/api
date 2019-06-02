@@ -8,6 +8,13 @@ export class OrganisationService {
     private auth: admin.auth.Auth,
   ) { }
 
+  async getDetails(organisationId: string): Promise<Tenant | null> {
+    const organisation = await this.db.collection('tenants').doc(organisationId).get();
+
+    // tslint:disable-next-line:no-unnecessary-type-assertion
+    return organisation.exists ? organisation.data() as Tenant : null;
+  }
+
   async removeUserFromOrganisation(organisationId: string, uid: string): Promise<void> {
     // Remove current tenant name in  tenants subcollection of this user
     await this.db.collection('users').doc(uid).collection('tenants').doc(organisationId).delete();
