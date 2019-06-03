@@ -1,9 +1,14 @@
 import * as express from 'express';
 import * as cors from 'cors';
 import * as functions from 'firebase-functions';
+const Sentry = require('@sentry/node');
 import { logRequestStart } from './util/log-request';
 
 const app = express();
+
+Sentry.init({ dsn: 'https://e2b8d5b8c87143948e4a0ca794fd06b2@sentry.io/1474167' });
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.errorHandler());
 
 // Log all requests
 app.use(logRequestStart);
