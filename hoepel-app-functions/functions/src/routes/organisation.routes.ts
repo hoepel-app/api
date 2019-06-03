@@ -28,56 +28,56 @@ router.post(
 );
 
 router.delete(
-    '/:organisationId/members/:uid',
+    '/:tenant/members/:uid',
     firebaseHasPermissionMiddleware(db, 'tenant:remove-member'), // TODO should also allow to delete self!
     async (req, res) => {
         try {
-            await organisationService.removeUserFromOrganisation(req.params.organisationId, req.params.uid);
+            await organisationService.removeUserFromOrganisation(req.params.tenant, req.params.uid);
             res.json({});
         } catch(err) {
-            console.error(`Could not remove user ${req.params.uid} from organisation ${req.params.organisationId}`, err);
+            console.error(`Could not remove user ${req.params.uid} from organisation ${req.params.tenant}`, err);
             res.status(500).json({ error: 'Could not remove user from organisation' })
         }
     }
 );
 
 router.put(
-    '/:organisationId/members/:uid',
+    '/:tenant/members/:uid',
     firebaseHasPermissionMiddleware(db, 'tenant:add-member'),
     async (req, res) => {
         try {
-            await organisationService.addUserToOrganisation(req.params.organisationId, req.params.uid);
+            await organisationService.addUserToOrganisation(req.params.tenant, req.params.uid);
             res.json({});
         } catch (err) {
-            console.error(`Could not add user ${req.params.uid} to organisation ${req.params.organisationId}`);
+            console.error(`Could not add user ${req.params.uid} to organisation ${req.params.tenant}`);
             res.status(500).json({ error: 'Could not add user to organisation' });
         }
     }
 );
 
 router.get(
-    '/:organisationId/members',
+    '/:tenant/members',
     firebaseHasPermissionMiddleware(db, 'tenant:list-members'),
     async (req, res) => {
         try {
-            const members = await organisationService.listMembers(req.params.organisationId);
+            const members = await organisationService.listMembers(req.params.tenant);
             res.json({ data: members });
         } catch (err) {
-            console.error(`Could not get all members for organisation ${req.params.organisationId}`, err);
+            console.error(`Could not get all members for organisation ${req.params.tenant}`, err);
             res.status(500).json({ error: 'Could not get members for organisation' });
         }
     }
 );
 
 router.get(
-    '/:organisationId/possible-members',
+    '/:tenant/possible-members',
     firebaseHasPermissionMiddleware(db, 'tenant:list-members'),
     async (req, res) => {
         try {
-            const possibleMembers = await organisationService.listPossibleMembers(req.params.organisationId);
+            const possibleMembers = await organisationService.listPossibleMembers(req.params.tenant);
             res.json({ data: possibleMembers });
         } catch (err) {
-            console.error(`Could not list possible members for organisation ${req.params.organisationId}`, err);
+            console.error(`Could not list possible members for organisation ${req.params.tenant}`, err);
             res.status(500).json({ error: 'Could not get possible members for organisation' })
         }
     }
