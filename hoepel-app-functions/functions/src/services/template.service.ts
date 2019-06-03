@@ -1,9 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as JSZip from 'jszip';
 import * as Docxtemplater from 'docxtemplater';
-import { join } from "path";
-import { tmpdir } from "os";
-import {writeFile as fsWriteFile, unlink as fsUnlink} from 'fs';
 import {promisify} from 'util';
 import { ChildService } from './child.service';
 import { AddressService } from './address.service';
@@ -13,9 +10,6 @@ import { ShiftService } from './shift.service';
 import { DayDate, FileType, Price } from '@hoepel.app/types';
 import * as _ from 'lodash';
 import dropTenant from '../util/drop-tenant';
-
-const writeFile = promisify(fsWriteFile);
-const unlink = promisify(fsUnlink);
 
 interface CertificateTemplateFillInData {
   readonly kind_naam: string,
@@ -114,11 +108,7 @@ export class TemplateService {
 
     const fileName = Math.random().toString(36).substring(2);
 
-    const path = join(tmpdir(), fileName);
-    await writeFile(path, filledIn);
-
-    await this.templatesStorage.upload(path, {
-      destination: 'test-template/' + fileName,
+    await this.templatesStorage.file('test-template/' + fileName).save(filledIn, {
       metadata: {
         contentDisposition: `inline; filename="voorbeeld template.docx"`,
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -130,8 +120,6 @@ export class TemplateService {
         },
       }
     });
-
-    await unlink(path);
 
     return { path: 'test-template/' + fileName };
   }

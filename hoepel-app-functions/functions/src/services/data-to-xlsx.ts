@@ -11,6 +11,10 @@ export interface LocalFileCreationResult {
   format: 'XLSX' | 'PDF' | 'DOCX';
 }
 
+
+// TODO this could all be simplified a lot by not writing to the local file system
+//      use XLXS.write(book, { type: 'buffer', bookType: 'xlsx', bookSST: false })
+
 export const childListToXlsx = (children: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {
   const rows = children.map((child: IChild) => {
     const birthDate = child.birthDate ? new DayDate(child.birthDate).nativeDate : '';
