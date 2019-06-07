@@ -99,9 +99,7 @@ export class FileService {
   }
 
   private async saveFile(localFile: LocalFileCreationResult, tenant: string, createdBy: string, uid: string, type: FileType): Promise<FirestoreFileDocument> {
-    const uploadResult = await this.uploadFile(tenant, localFile);
-
-    await this.removeLocalFile(localFile.path);
+    const bucketFileName = await this.uploadFile(tenant, localFile);
 
     const doc: FirestoreFileDocument = {
       expires: this.getFileExpirationDate(),
@@ -110,8 +108,8 @@ export class FileService {
       createdByUid: uid,
       description: localFile.description,
       format: localFile.format,
-      refPath: uploadResult.name,
-      tenant: tenant,
+      refPath: bucketFileName,
+      tenant,
       type,
     };
 
@@ -127,31 +125,29 @@ export class FileService {
     return expires;
   }
 
-  private async uploadFile(tenant: string, localFile: LocalFileCreationResult): Promise<any> {
+  /**
+   * Upload a file to the storage bucket
+   *
+   * @return The name of the file in the file storage bucket
+   */
+  private async uploadFile(tenant: string, localFile: LocalFileCreationResult): Promise<string> {
     // Upload to storage
-    const uploadResult = await this.storage.upload(
-      localFile.path,
-      {
-      metadata: {
+    const name = `${new Date().getTime()} ${tenant} ${localFile.downloadFileName}`;
+
+    await this.storage.file(name).save(
+      localFile.file, {
         metadata: {
-          tenant: tenant,
-          expires: this.getFileExpirationDate().getTime().toString(),
+          metadata: { tenant: tenant, expires: this.getFileExpirationDate().getTime().toString() },
+
+          // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+          // https://stackoverflow.com/questions/1741353/how-to-set-response-filename-without-forcing-saveas-dialog
+          contentDisposition: `inline; filename="${localFile.downloadFileName}"`,
+          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         },
+      }
+    );
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-        // https://stackoverflow.com/questions/1741353/how-to-set-response-filename-without-forcing-saveas-dialog
-        contentDisposition: `inline; filename="${localFile.downloadFileName}"`,
-      },
-      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // TODO what if PDF?
-      destination: localFile.localFileName,
-    });
-
-    return uploadResult[0]; // returns a File
-  }
-
-  private async removeLocalFile(path: string): Promise<void> {
-    // Delete file on local disk (limited in-memory file system)
-    await unlink(path);
+    return name;
   }
 
   private async saveToFirestore(doc: FirestoreFileDocument): Promise<void> {

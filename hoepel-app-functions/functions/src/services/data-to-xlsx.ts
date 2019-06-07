@@ -1,19 +1,12 @@
-import { tmpdir } from 'os';
-import { join } from 'path';
 import * as XLSX from 'xlsx';
 import {Child, Crew, DayDate, IChild, ICrew, IDetailedChildAttendance, Shift} from '@hoepel.app/types';
 
 export interface LocalFileCreationResult {
-  path: string;
   downloadFileName: string;
-  localFileName: string;
+  file: Buffer, // the actual file
   description: string;
   format: 'XLSX' | 'PDF' | 'DOCX';
 }
-
-
-// TODO this could all be simplified a lot by not writing to the local file system
-//      use XLXS.write(book, { type: 'buffer', bookType: 'xlsx', bookSST: false })
 
 export const childListToXlsx = (children: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {
   const rows = children.map((child: IChild) => {
@@ -35,17 +28,13 @@ export const childListToXlsx = (children: ReadonlyArray<IChild>, tenant: string)
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Alle kinderen');
-
-  const realFileName = `${new Date().getTime()} ${tenant} Alle kinderen.xlsx`;
-  const path = join(tmpdir(), realFileName);
-  XLSX.writeFile(workbook, path, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',
     description: 'Alle kinderen',
     downloadFileName: 'Alle kinderen.xlsx',
-    path,
-    localFileName: realFileName,
+    file,
   };
 };
 
@@ -70,17 +59,13 @@ export const crewListToXlsx = (allCrew: ReadonlyArray<ICrew>, tenant: string): L
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Alle animatoren');
-
-  const realFileName = `${new Date().getTime()} ${tenant} Alle animatoren.xlsx`;
-  const path = join(tmpdir(), realFileName);
-  XLSX.writeFile(workbook, path, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',
     description: 'Alle animatoren',
     downloadFileName: 'Alle animatoren.xlsx',
-    path,
-    localFileName: realFileName,
+    file,
   };
 };
 
@@ -105,16 +90,13 @@ export const childrenWithCommentsListToXlsx = (children: ReadonlyArray<IChild>, 
 
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Alle kinderen met opmerking');
 
-  const realFileName = `${new Date().getTime()} ${tenant} Alle kinderen met opmerking.xlsx`;
-  const path = join(tmpdir(), realFileName);
-  XLSX.writeFile(workbook, path, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',
     description: 'Alle kinderen met opmerking',
     downloadFileName: 'Alle kinderen met opmerking.xlsx',
-    path,
-    localFileName: realFileName,
+    file,
   };
 };
 
@@ -151,17 +133,13 @@ export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: R
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Aanwezigheden animatoren ${year}`);
-
-  const realFileName = `${new Date().getTime()} ${tenant} Aanwezigheden animatoren ${year}.xlsx`;
-  const path = join(tmpdir(), realFileName);
-  XLSX.writeFile(workbook, path, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false });
 
   return {
     format: 'XLSX',
     description: `Aanwezigheden animatoren ${year}`,
     downloadFileName: `Aanwezigheden animatoren ${year}.xlsx`,
-    path,
-    localFileName: realFileName,
+    file,
   };
 };
 
@@ -198,17 +176,13 @@ export const createChildAttendanceXlsx = (allChildren: ReadonlyArray<Child>, shi
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Aanwezigheden kinderen ${year}`);
-
-  const realFileName = `${new Date().getTime()} ${tenant} Aanwezigheden kinderen ${year}.xlsx`;
-  const path = join(tmpdir(), realFileName);
-  XLSX.writeFile(workbook, path, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',
     description: `Aanwezigheden kinderen ${year}`,
     downloadFileName: `Aanwezigheden kinderen ${year}.xlsx`,
-    path,
-    localFileName: realFileName,
+    file,
   };
 };
 
@@ -246,17 +220,12 @@ export const createAllFiscalCertsXlsx = (allChildren: ReadonlyArray<Child>, shif
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Fiscale attesten ${year}`);
-
-  const realFileName = `${new Date().getTime()} ${tenant} Fiscale attesten ${year}.xlsx`;
-  const path = join(tmpdir(), realFileName);
-  XLSX.writeFile(workbook, path, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',
     description: `Data fiscale attesten ${year}`,
     downloadFileName: `Data fiscale attesten ${year}.xlsx`,
-    path,
-    localFileName: realFileName,
+    file,
   };
 };
-
