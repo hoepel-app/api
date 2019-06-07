@@ -4,10 +4,6 @@ import {
 } from './data-to-xlsx';
 import { Child, Crew, DayDate, FileType, IChild, ICrew, IDetailedChildAttendance, IShift, Shift } from '@hoepel.app/types';
 import * as admin from 'firebase-admin';
-import { promisify } from 'util';
-import { unlink as unlinkFile } from 'fs';
-
-const unlink = promisify(unlinkFile);
 
 interface FirestoreFileDocument {
   expires: Date;

@@ -1,7 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as JSZip from 'jszip';
 import * as Docxtemplater from 'docxtemplater';
-import {promisify} from 'util';
 import { ChildService } from './child.service';
 import { AddressService } from './address.service';
 import { OrganisationService } from './organisation.service';

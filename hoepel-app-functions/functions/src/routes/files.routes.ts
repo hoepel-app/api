@@ -6,7 +6,6 @@ import { FileService } from '../services/file.service';
 import { FileRequestMetadata, FileType } from '@hoepel.app/types';
 
 const db = admin.firestore();
-const auth = admin.auth();
 const storage = admin.storage().bucket('hoepel-app-reports');
 const fileService = new FileService(db, storage);
 
