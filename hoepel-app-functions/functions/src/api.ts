@@ -8,7 +8,6 @@ const app = express();
 
 Sentry.init({ dsn: 'https://e2b8d5b8c87143948e4a0ca794fd06b2@sentry.io/1474167' });
 app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.errorHandler());
 
 // Log all requests
 app.use(logRequestStart);
@@ -30,6 +29,11 @@ app.use('/:tenant/templates', (req, res, next) => {
   res.locals.tenant = req.params.tenant;
   next();
 }, require('./routes/templates.routes').router);
+
+
+// Error handlers
+
+app.use(Sentry.Handlers.errorHandler());
 
 app.use((err, req, res, next) => {
   console.error(err);
