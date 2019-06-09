@@ -33,7 +33,25 @@ app.use('/:tenant/templates', (req, res, next) => {
 
 // Error handlers
 
-app.use(Sentry.Handlers.errorHandler());
+app.use(
+  (err, req, res, next) => {
+    Sentry.configureScope((scope) => {
+      scope.setUser({
+        email: (res.locals.user || {}).email,
+        id: (res.locals.user || {}).uid,
+        username: (res.locals.user || {}).name,
+        ip_address: req.header('X-Forwarded-For'),
+      });
+
+      if (req.params.tenant) {
+        scope.setExtra('tenant', req.params.tenant);
+      }
+
+      next(err);
+    });
+  },
+  Sentry.Handlers.errorHandler(),
+);
 
 app.use((err, req, res, next) => {
   console.error(err);
