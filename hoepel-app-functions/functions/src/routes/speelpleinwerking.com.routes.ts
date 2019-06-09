@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import { Child, IChild, Tenant } from "@hoepel.app/types";
 import { firebaseIsAuthenticatedSpeelpleinwerkingDotComMiddleware } from "../middleware/is-authenticated.middleware";
 import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
+import { asyncMiddleware } from '../util/async-middleware';
 
 const db = admin.firestore();
 
@@ -10,7 +11,7 @@ export const router = Router();
 
 router.use(firebaseIsAuthenticatedSpeelpleinwerkingDotComMiddleware(admin));
 
-router.get('/organisation', async (req, res) => {
+router.get('/organisation', asyncMiddleware(async (req, res) => {
 
   // Hide these organisations
   const filteredOrganisationIds = ['example', 'demo'];
@@ -21,9 +22,9 @@ router.get('/organisation', async (req, res) => {
   });
 
   res.json(all.filter(org => filteredOrganisationIds.indexOf(org.id) === -1));
-});
+}));
 
-router.get('/organisation/:organisation', async (req, res) => {
+router.get('/organisation/:organisation', asyncMiddleware(async (req, res) => {
   // TODO Don't show all properties, such as contact person
   const org = await db.collection('tenants').doc(req.params.organisation).get();
 
@@ -32,9 +33,9 @@ router.get('/organisation/:organisation', async (req, res) => {
   } else {
     res.status(404).json({});
   }
-});
+}));
 
-router.get('/organisation/:organisation/children/managed-by/me', async (req, res) => {
+router.get('/organisation/:organisation/children/managed-by/me', asyncMiddleware(async (req, res) => {
   const parentUid = res.locals.user.uid;
   const organisationId = req.params.organisation;
 
@@ -45,9 +46,9 @@ router.get('/organisation/:organisation/children/managed-by/me', async (req, res
   ).docs.map(snapshot => new Child({ ...snapshot.data() as IChild, id: snapshot.id }));
 
   res.json(children);
-});
+}));
 
-router.get('/organisation/:organisation/children/managed-by/:parentUid', async (req, res) => {
+router.get('/organisation/:organisation/children/managed-by/:parentUid', asyncMiddleware(async (req, res) => {
   const parentUid = req.params.parentUid;
   const organisationId = req.params.organisation;
 
@@ -63,9 +64,9 @@ router.get('/organisation/:organisation/children/managed-by/:parentUid', async (
   ).docs.map(snapshot => new Child({ ...snapshot.data() as IChild, id: snapshot.id }));
 
   res.json(children);
-});
+}));
 
-router.put('/organisation/:organisation/children/:child', async (req, res) => {
+router.put('/organisation/:organisation/children/:child', asyncMiddleware(async (req, res) => {
   const childId = req.params.child;
   const organisationId = req.params.organisation;
   const parentUid = res.locals.user.uid;
@@ -90,9 +91,9 @@ router.put('/organisation/:organisation/children/:child', async (req, res) => {
 
     res.status(200).json({});
   }
-});
+}));
 
-router.post('/organisation/:organisation/children', async (req, res) => {
+router.post('/organisation/:organisation/children', asyncMiddleware(async (req, res) => {
   const organisationId = req.params.organisation;
   const parentUid = res.locals.user.uid;
 
@@ -105,4 +106,4 @@ router.post('/organisation/:organisation/children', async (req, res) => {
   await db.collection('children').add(newChildWithTenant);
 
   res.status(200).json({});
-});
+}));

@@ -31,16 +31,18 @@ app.use('/:tenant/templates', (req, res, next) => {
   next();
 }, require('./routes/templates.routes').router);
 
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (err.cause) {
+    console.error('Cause:');
+    console.error(err.cause);
+  }
 
-app.get('/who-am-i', (req, res) => {
-  res.json({
-    data: {
-      email: res.locals.user.email,
-      uid: res.locals.user.uid,
-      token: res.locals.user,
-      message: `You're logged in as ${res.locals.user.email} with Firebase UID: ${res.locals.user.uid}`
-    }
-  });
+  res.status(500).json({
+    status: 'error',
+    message: err.message,
+    cause: (err.cause || {}).message,
+   });
 });
 
 export const api = functions.region('europe-west1').https.onRequest(app);

@@ -1,51 +1,48 @@
 // Based on https://github.com/antonybudianto/express-firebase-middleware
-import { Request, Response, NextFunction, RequestHandler } from "express";
-import { verifyJwt } from "../util/verify-jwt";
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { verifyJwt } from '../util/verify-jwt';
+import { asyncMiddleware } from '../util/async-middleware';
+import { NotAuthenticatedError } from '../errors/not-authenticated.error'
 
 export const firebaseIsAuthenticatedMiddleware = (admin: any): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction): any => {
+  return asyncMiddleware(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authorization = req.header('Authorization');
     if (authorization) {
       const token = authorization.split(' ');
-      admin.auth().verifyIdToken(token[1])
-        .then((decodedToken) => {
-          res.locals.user = decodedToken;
-          next();
-        })
-        .catch(err => {
-          res.status(401).json({ error: 'Could not verify token' });
-        });
+      try {
+        res.locals.user = await admin.auth().verifyIdToken(token[1]);
+        next();
+      } catch(err) {
+        throw new NotAuthenticatedError('Could not verify token', err);
+      }
     } else {
-      res.status(401).json({ error: 'Authorization not found' });
+      throw new NotAuthenticatedError('Authorization not found');
     }
-  }
+  });
 };
 
 export const firebaseIsAuthenticatedSpeelpleinwerkingDotComMiddleware = (admin: any): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction): any => {
+  return asyncMiddleware(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
     const authorization = req.header('Authorization');
 
     if (authorization) {
       const token = authorization.split(' ');
 
-      verifyJwt(token[1])
-        .then((decodedToken) => {
-          if (!decodedToken) {
-            throw new Error('Could not verify token');
-          } else {
-            res.locals.user = decodedToken;
-            res.locals.user.uid = (decodedToken as any).user_id;
-            next();
-          }
-        })
-        .catch(err => {
-          res.status(401).json({ error: 'Could not verify token' });
-        });
+      try {
+        const decodedToken = await verifyJwt(token[1]);
+        if (!decodedToken) {
+          throw new NotAuthenticatedError('Could not verify token');
+        } else {
+          res.locals.user = decodedToken;
+          res.locals.user.uid = (decodedToken as any).user_id;
+          next();
+        }
+      } catch (err) {
+        throw new NotAuthenticatedError('Could not verify token', err);
+      }
     } else {
-      res.status(401).json({ error: 'Authorization not found' });
+      throw new NotAuthenticatedError('Authorization not found');
     }
-  }
+  });
 };
-
-

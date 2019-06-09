@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { UserService } from "../services/user.service";
 import * as admin from "firebase-admin";
 import { firebaseIsAuthenticatedMiddleware } from "../middleware/is-authenticated.middleware";
+import { asyncMiddleware } from '../util/async-middleware';
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -17,53 +18,34 @@ router.use(firebaseIsAuthenticatedMiddleware(admin));
 
 // Routes
 
-router.put('/accept/privacy-policy', (req, res) => userService.acceptPrivacyPolicy(res.locals.user.uid).then(_ => {
-  res.status(200).json({});
-}).catch(err => {
-  console.error(`Could not accept privacy policy (${res.locals.user.uid})`, err);
-  res.status(500).json({});
+router.put('/accept/privacy-policy', asyncMiddleware(async (req, res) => {
+  await userService.acceptPrivacyPolicy(res.locals.user.uid);
+  res.json({});
 }));
 
-router.put('/accept/terms-and-conditions', (req, res) => userService.acceptTermsAndConditions(res.locals.user.uid).then(_ => {
+router.put('/accept/terms-and-conditions', asyncMiddleware(async (req, res) => {
+  await userService.acceptTermsAndConditions(res.locals.user.uid);
   res.status(200).json({});
-}).catch(err => {
-  console.error(`Could not accept terms and conditions (${res.locals.user.uid})`, err);
-  res.status(500).json({});
 }));
 
-router.get('/all', firebaseIsAdminMiddleware(db), (req, res) => {
+router.get('/all', firebaseIsAdminMiddleware(db), asyncMiddleware(async (req, res) => {
   const maxResults = parseInt(req.query.maxResults, 10);
-  userService.getUsers(maxResults || undefined, req.query.pageToken || undefined).then(data => {
-    res.json({ data });
-  }).catch(err => {
-    console.error('Could not get all users', err);
-    res.status(500).json({});
-  });
-});
+  const data = await userService.getUsers(maxResults || undefined, req.query.pageToken || undefined);
+  res.json({ data });
+}));
 
-router.get('/:uid', firebaseIsAdminMiddleware(db), (req, res) => {
-  userService.getUser(req.params.uid).then(data => {
-    res.json({ data });
-  }).catch(err => {
-    console.error(`Could not get user with id ${req.params.uid}`, err);
-    res.status(500).json({});
-  });
-});
+router.get('/:uid', firebaseIsAdminMiddleware(db), asyncMiddleware(async (req, res) => {
+  const data = await userService.getUser(req.params.uid);
+  res.json({ data });
+}));
 
-router.put('/:uid/display-name', async (req, res) => {
-  try {
-    const displayName = req.body.displayName;
+router.put('/:uid/display-name', asyncMiddleware(async (req, res) => {
+  const displayName = req.body.displayName;
 
-    if (!displayName) {
-      res.status(400).json({ error: 'Missing displayName property in body' });
-      return;
-    }
-
-    await userService.updateDisplayName(req.params.uid, req.body.displayName);
-
-    res.status(200).json({});
-  } catch (err) {
-    console.log(`Could not update displayName for user ${req.params.uid}`, err);
-    res.status(500);
+  if (!displayName) {
+    throw new Error('Could not update displayName: Missing displayName property in body');
   }
-});
+
+  await userService.updateDisplayName(req.params.uid, displayName);
+  res.status(200).json({});
+}));

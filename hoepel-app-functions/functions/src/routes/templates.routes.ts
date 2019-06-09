@@ -9,6 +9,7 @@ import { OrganisationService } from '../services/organisation.service';
 import { ChildAttendanceService } from '../services/child-attendance.service';
 import { ShiftService } from '../services/shift.service';
 import { ContactPersonService } from '../services/contact-person.service';
+import { asyncMiddleware } from '../util/async-middleware';
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -37,51 +38,36 @@ export const router = Router();
 
 router.use(firebaseIsAuthenticatedMiddleware(admin));
 
-router.post('/:templateId/test', firebaseHasPermissionMiddleware(db, 'template:read'), async (req, res, next) => {
-  try {
-    const templateResult = await templateService.testTemplate(
-      res.locals.tenant,
-      req.params.templateId,
-      res.locals.user.name || res.locals.user.email,
-      res.locals.user.uid,
-    );
-    res.json(templateResult);
-  } catch (err) {
-    console.error(`Could not test template ${req.params.templateId} (requested by ${res.locals.user.uid})`, err);
-    res.status(500).json({error: 'Could not test template'});
-  }
-});
+router.post('/:templateId/test', firebaseHasPermissionMiddleware(db, 'template:read'), asyncMiddleware(async (req, res, next) => {
+  const templateResult = await templateService.testTemplate(
+    res.locals.tenant,
+    req.params.templateId,
+    res.locals.user.name || res.locals.user.email,
+    res.locals.user.uid,
+  );
+  res.json(templateResult);
+}));
 
 router.post('/:templateId/fill-in/child/:childId/:year',
   firebaseHasPermissionMiddleware(db, 'template:read'),
   firebaseHasPermissionMiddleware(db, 'template:fill-in'),
   firebaseHasPermissionMiddleware(db, 'child:read'),
-  async (req, res, next) => {
-    try {
-      const savedReportDetails = await templateService.fillInChildTemplate(res.locals.tenant, {
-        createdBy: res.locals.user.name || res.locals.user.email || '',
-        createdByUid: res.locals.user.uid,
-        childId: req.params.childId,
-        templateFileName: req.params.templateId,
-        year: Number(req.params.year) || new Date().getFullYear(),
-      });
+  asyncMiddleware(async (req, res, next) => {
+    const savedReportDetails = await templateService.fillInChildTemplate(res.locals.tenant, {
+      createdBy: res.locals.user.name || res.locals.user.email || '',
+      createdByUid: res.locals.user.uid,
+      childId: req.params.childId,
+      templateFileName: req.params.templateId,
+      year: Number(req.params.year) || new Date().getFullYear(),
+    });
 
-      res.json(savedReportDetails);
-    } catch (err) {
-      console.error(`Could not fill in template ${req.params.templateId} (requested by ${res.locals.user.uid})`, err);
-      res.status(500).json({ error: 'Could not fill in template' });
-    }
-  });
+    res.json(savedReportDetails);
+  }));
 
-router.delete('/:templateId', firebaseHasPermissionMiddleware(db, 'template:write'), async (req, res, next) => {
-  try {
-    const deletionResult = await templateService.deleteTemplate(
-      res.locals.tenant,
-      req.params.templateId,
-    );
-    res.json(deletionResult);
-  } catch (err) {
-    console.error(`Could not delete template ${req.params.templateId} (requested by ${res.locals.user.uid})`, err);
-    res.status(500).json({error: 'Could not test template'});
-  }
-});
+router.delete('/:templateId', firebaseHasPermissionMiddleware(db, 'template:write'), asyncMiddleware(async (req, res, next) => {
+  const deletionResult = await templateService.deleteTemplate(
+    res.locals.tenant,
+    req.params.templateId,
+  );
+  res.json(deletionResult);
+}));
