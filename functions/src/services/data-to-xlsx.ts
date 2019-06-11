@@ -133,7 +133,7 @@ export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: R
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Aanwezigheden animatoren ${year}`);
-  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false });
+  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',

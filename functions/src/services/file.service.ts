@@ -1,9 +1,27 @@
 import {
-  childListToXlsx, childrenWithCommentsListToXlsx, createAllFiscalCertsXlsx, createChildAttendanceXlsx,
-  createCrewAttendanceXlsx, crewListToXlsx, LocalFileCreationResult,
+  childListToXlsx,
+  childrenWithCommentsListToXlsx,
+  createAllFiscalCertsXlsx,
+  createChildAttendanceXlsx,
+  createCrewAttendanceXlsx,
+  crewListToXlsx,
+  LocalFileCreationResult,
 } from './data-to-xlsx';
-import { Child, Crew, DayDate, FileType, IChild, ICrew, IDetailedChildAttendance, IShift, Shift } from '@hoepel.app/types';
+import {
+  Child,
+  Crew,
+  DayDate,
+  FileType,
+  IChild,
+  ICrew,
+  IDetailedChildAttendance,
+  IShift,
+  Shift,
+} from '@hoepel.app/types';
 import * as admin from 'firebase-admin';
+import { ChildService } from './child.service';
+import { CrewService } from './crew.service';
+import { ShiftService } from './shift.service';
 
 interface FirestoreFileDocument {
   expires: Date;
@@ -20,36 +38,34 @@ interface FirestoreFileDocument {
 
 export class FileService {
   constructor(
+    private childService: ChildService,
+    private crewService: CrewService,
+    private shiftService: ShiftService,
     private db: admin.firestore.Firestore,
     private storage: any, // Bucket
   ) {}
 
   async exportAllChildren(tenant: string, createdBy: string, uid: string): Promise<FirestoreFileDocument> {
-    const allChildren = await this.db.collection('children').where('tenant', '==', tenant).get();
-    const localFile = childListToXlsx(allChildren.docs.map(x => x.data() as IChild), tenant);
+    const localFile = childListToXlsx(await this.childService.getAll(tenant), tenant);
 
     return await this.saveFile(localFile, tenant, createdBy, uid, 'all-children');
   }
 
   async exportAllCrew(tenant: string, createdBy: string, uid: string): Promise<FirestoreFileDocument> {
-    const allCrew = await this.db.collection('crew-members').where('tenant', '==', tenant).get();
-    const localFile = crewListToXlsx(allCrew.docs.map(x => x.data() as ICrew), tenant);
+    const localFile = crewListToXlsx(await this.crewService.getAll(tenant), tenant);
 
     return await this.saveFile(localFile, tenant, createdBy, uid, 'all-crew');
   }
 
   async exportChildrenWithComment(tenant: string, createdBy: string, uid: string): Promise<FirestoreFileDocument> {
-    const childrenWithComment = await this.db.collection('children').where('tenant', '==', tenant).get();
-    const filteredChildren = childrenWithComment.docs.map(x => x.data() as IChild).filter(child => child.remarks);
-    const localFile = childrenWithCommentsListToXlsx(filteredChildren, tenant);
+    const children = (await this.childService.getAll(tenant)).filter(child => child.remarks);
+    const localFile = childrenWithCommentsListToXlsx(children, tenant);
 
     return await this.saveFile(localFile, tenant, createdBy, uid, 'children-with-comment');
   }
 
   async exportCrewAttendances(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
-    const allCrewForAtt = (await this.db.collection('crew-members').where('tenant', '==', tenant).get()).docs
-      .map(snapshot => new Crew({ ...(snapshot.data() as ICrew), id: snapshot.id }))
-      .filter(crew => crew.active);
+    const allCrewForAtt = (await this.crewService.getAll(tenant)).filter(crew => crew.active);
 
     const shiftsForCrewAtt = await this.getShiftsInYear(year, tenant);
     const crewAttendances = await this.getCrewAttendancesOnShifts(shiftsForCrewAtt, tenant);
@@ -60,8 +76,7 @@ export class FileService {
   }
 
   async exportChildAttendances(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
-    const allChildrenForChildAtt = (await this.db.collection('children').where('tenant', '==', tenant).get()).docs
-      .map(snapshot => new Child({ ...(snapshot.data() as IChild), id: snapshot.id }));
+    const allChildrenForChildAtt = await this.childService.getAll(tenant);
 
     const shiftsForChildAtt = await this.getShiftsInYear(year, tenant);
     const childAttendancesForChildAtt = await this.getChildAttendancesOnShifts(shiftsForChildAtt, tenant);
@@ -72,8 +87,7 @@ export class FileService {
   }
 
   async exportFiscalCertificatesList(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
-    const allChildrenForFiscalCerts = (await this.db.collection('children').where('tenant', '==', tenant).get()).docs
-      .map(snapshot => new Child({ ...(snapshot.data() as IChild), id: snapshot.id }));
+    const allChildrenForFiscalCerts = await this.childService.getAll(tenant);
 
     const shiftsForFiscalCerts = await this.getShiftsInYear(year, tenant);
     const childAttendancesForFiscalCerts = await this.getChildAttendancesOnShifts(shiftsForFiscalCerts, tenant);
@@ -154,13 +168,9 @@ export class FileService {
   /// Data access helpers
 
   private async getShiftsInYear(year: number, tenant): Promise<ReadonlyArray<Shift>> {
-    const qs = await this.db.collection('shifts')
-      .where('tenant', '==', tenant)
-      .get();
+    const shifts = await this.shiftService.getAll(tenant);
 
-    return qs.docs
-      .map(shift => new Shift({ ...(shift.data() as IShift), id: shift.id }))
-      .filter(shift => DayDate.fromDayId(shift.dayId).year === year);
+    return shifts.filter(shift => DayDate.fromDayId(shift.dayId).year === year);
   }
 
   private async getCrewAttendancesOnShifts(shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>> {

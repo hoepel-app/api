@@ -5,10 +5,14 @@ import { firebaseHasPermissionMiddleware } from "../middleware/has-permission.mi
 import { FileService } from '../services/file.service';
 import { FileRequestMetadata, FileType } from '@hoepel.app/types';
 import { asyncMiddleware } from '../util/async-middleware';
+import { ChildService } from "../services/child.service";
+import { CrewService } from "../services/crew.service";
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
-const fileService = new FileService(db, storage);
+const childService = new ChildService(db);
+const crewService = new CrewService(db);
+const fileService = new FileService(childService, crewService, db, storage);
 
 export const router = Router();
 

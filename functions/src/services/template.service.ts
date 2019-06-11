@@ -6,7 +6,7 @@ import { AddressService } from './address.service';
 import { OrganisationService } from './organisation.service';
 import { ChildAttendanceService } from './child-attendance.service';
 import { ShiftService } from './shift.service';
-import { DayDate, FileType, Price } from '@hoepel.app/types';
+import { DayDate, FileType, Price, Shift } from '@hoepel.app/types';
 import * as _ from 'lodash';
 import dropTenant from '../util/drop-tenant';
 
@@ -283,7 +283,7 @@ export class TemplateService {
 
     const attendances = await this.childAttendanceService.getAttendancesForChild(childId);
     const shiftIds = Object.keys(attendances);
-    const shifts = (await this.shiftService.getMany(tenant, shiftIds))
+    const shifts = Shift.sort((await this.shiftService.getMany(tenant, shiftIds)))
       .filter(shift => shift && DayDate.fromDayId(shift.dayId).year === year); // Only keep shifts in this year
     const numberOfUniqueDays = ShiftService.numberOfUniqueDays(shifts);
 
