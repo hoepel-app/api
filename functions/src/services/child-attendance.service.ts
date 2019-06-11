@@ -1,6 +1,5 @@
 import * as admin from 'firebase-admin';
 import { IDetailedChildAttendance, IShift } from '@hoepel.app/types';
-import { CrudService } from './crud.service';
 
 export class ChildAttendanceService {
   constructor(
