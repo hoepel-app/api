@@ -8,12 +8,8 @@ import {
   LocalFileCreationResult,
 } from './data-to-xlsx';
 import {
-  Child,
-  Crew,
   DayDate,
   FileType,
-  IChild,
-  ICrew,
   IDetailedChildAttendance,
   IShift,
   Shift,
@@ -41,7 +37,7 @@ export class FileService {
     private childService: ChildService,
     private crewService: CrewService,
     private shiftService: ShiftService,
-    private db: admin.firestore.Firestore,
+    private db: admin.firestore.Firestore, // TODO refactor so this service does not use db directly
     private storage: any, // Bucket
   ) {}
 
@@ -176,7 +172,7 @@ export class FileService {
   private async getCrewAttendancesOnShifts(shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>> {
     const all = await Promise.all(
       shifts.map(shift => this.db.collection('crew-attendances-by-shift').doc(shift.id).get())
-    );
+    ); // TODO Should use get many
 
     return all.filter(snapshot => snapshot.exists && snapshot.data().attendances && snapshot.data().tenant === tenant).map(snapshot => {
       return {

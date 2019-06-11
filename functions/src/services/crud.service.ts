@@ -47,7 +47,7 @@ export abstract class CrudService<T extends { id?: string }, IT extends { id?: s
   async getAll(tenant: string): Promise<ReadonlyArray<Omit<T, 'tenant'>>> {
     const all = await this.db.collection(this.collectionName).where('tenant', '==', tenant).get();
 
-    return all.docs.map(doc => this.plainToObject(doc.data() as any, doc.id));
+    return all.docs.map(doc => this.plainToObject(doc.data() as IT & { tenant: string }, doc.id));
   }
 
   async getMany(tenant: string, ids: ReadonlyArray<string>): Promise<ReadonlyArray<Omit<T, 'tenant'>>> {

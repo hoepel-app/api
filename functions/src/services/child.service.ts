@@ -1,6 +1,5 @@
 import * as admin from 'firebase-admin';
 import { Child, IChild } from '@hoepel.app/types';
-import dropTenant from '../util/drop-tenant';
 import { CrudService } from './crud.service';
 
 export class ChildService extends CrudService<Child, IChild> {

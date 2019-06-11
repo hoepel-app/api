@@ -7,12 +7,15 @@ import { FileRequestMetadata, FileType } from '@hoepel.app/types';
 import { asyncMiddleware } from '../util/async-middleware';
 import { ChildService } from "../services/child.service";
 import { CrewService } from "../services/crew.service";
+import { ShiftService } from "../services/shift.service";
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
 const childService = new ChildService(db);
 const crewService = new CrewService(db);
-const fileService = new FileService(childService, crewService, db, storage);
+const shiftService = new ShiftService(db);
+
+const fileService = new FileService(childService, crewService, shiftService, db, storage);
 
 export const router = Router();
 
