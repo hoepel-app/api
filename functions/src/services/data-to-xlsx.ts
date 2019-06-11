@@ -1,5 +1,16 @@
 import * as XLSX from 'xlsx';
-import {Child, Crew, DayDate, IChild, ICrew, IDetailedChildAttendance, Shift} from '@hoepel.app/types';
+import {
+  Address,
+  Child,
+  ContactPerson,
+  Crew,
+  DayDate,
+  IChild,
+  ICrew,
+  IDetailedChildAttendance,
+  Shift,
+} from '@hoepel.app/types';
+import { AddressService } from './address.service';
 
 export interface LocalFileCreationResult {
   downloadFileName: string;
@@ -186,13 +197,21 @@ export const createChildAttendanceXlsx = (allChildren: ReadonlyArray<Child>, shi
   };
 };
 
-export const createAllFiscalCertsXlsx = (allChildren: ReadonlyArray<Child>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<IDetailedChildAttendance> }>, year: number, tenant: string): LocalFileCreationResult => {
+export const createAllFiscalCertsXlsx = (
+  allChildren: ReadonlyArray<Child>,
+  allContacts: ReadonlyArray<ContactPerson>,
+  shifts: ReadonlyArray<Shift>,
+  attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<IDetailedChildAttendance> }>, year: number, tenant: string
+): LocalFileCreationResult => {
 
   const sortedShifts = Shift.sort(shifts);
 
   const rows = Child.sorted(allChildren).map(child => {
+    const address = AddressService.getAddressForChildWithExistingContacts(child, allContacts);
+
     return {
       child,
+      address: address ? address : new Address({ }),
       attendances: sortedShifts.map(shift => {
         const attendanceForShift = attendances.find(att => att.shiftId === shift.id);
         if (attendanceForShift && attendanceForShift.attendances[child.id] && attendanceForShift.attendances[child.id].didAttend) {
@@ -205,18 +224,31 @@ export const createAllFiscalCertsXlsx = (allChildren: ReadonlyArray<Child>, shif
   }).filter(row => row.attendances.find(att => att === 1)); // Only children with attendances
 
   const data = [
-    [ '', 'Dag', ...sortedShifts.map(shift => DayDate.fromDayId(shift.dayId).nativeDate) ],
-    [ '', 'Type', ...sortedShifts.map(shift => shift.kind) ],
-    [ '', 'Prijs', ...sortedShifts.map(shift => shift.price.toString()) ],
-    [ 'Voornaam', 'Familienaam', ...sortedShifts.map(shift => shift.description) ],
-    ...rows.map(row => [ row.child.firstName, row.child.lastName, ...row.attendances ]),
+    [ ...Array(6).fill(''), 'Dag', ...sortedShifts.map(shift => DayDate.fromDayId(shift.dayId).nativeDate) ],
+    [ ...Array(6).fill(''), 'Type', ...sortedShifts.map(shift => shift.kind) ],
+    [ ...Array(6).fill(''), 'Prijs', ...sortedShifts.map(shift => shift.price.toString()) ],
+    [ 'Voornaam', 'Familienaam', 'Geboortedatum', 'Straat en nummer', 'Postcode', 'Adres', '', ...sortedShifts.map(shift => shift.description) ],
+    ...rows.map(row => {
+      const birthDate = row.child.birthDate ? new DayDate(row.child.birthDate).nativeDate : '';
+      return [
+        row.child.firstName,
+        row.child.lastName,
+        birthDate,
+        (row.address.street || '') + ' ' + (row.address.number || ''),
+        row.address.zipCode || '',
+        row.address.city || '',
+        '',
+        ...row.attendances
+      ];
+    }),
   ];
 
   const workbook = XLSX.utils.book_new();
 
   const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
   worksheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, ...sortedShifts.map(_ => ({ wch: 22 }))
+    ... Array(7).fill({ wch: 25 }),
+    ...sortedShifts.map(_ => ({ wch: 22 }))
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Fiscale attesten ${year}`);

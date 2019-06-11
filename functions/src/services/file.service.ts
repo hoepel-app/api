@@ -18,6 +18,8 @@ import * as admin from 'firebase-admin';
 import { ChildService } from './child.service';
 import { CrewService } from './crew.service';
 import { ShiftService } from './shift.service';
+import { ContactPersonService } from './contact-person.service';
+import { ChildAttendanceService } from './child-attendance.service';
 
 interface FirestoreFileDocument {
   expires: Date;
@@ -36,7 +38,9 @@ export class FileService {
   constructor(
     private childService: ChildService,
     private crewService: CrewService,
+    private contactPersonService: ContactPersonService,
     private shiftService: ShiftService,
+    private childAttendanceService: ChildAttendanceService,
     private db: admin.firestore.Firestore, // TODO refactor so this service does not use db directly
     private storage: any, // Bucket
   ) {}
@@ -63,7 +67,7 @@ export class FileService {
   async exportCrewAttendances(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
     const allCrewForAtt = (await this.crewService.getAll(tenant)).filter(crew => crew.active);
 
-    const shiftsForCrewAtt = await this.getShiftsInYear(year, tenant);
+    const shiftsForCrewAtt = await this.shiftService.getShiftsInYear(tenant, year);
     const crewAttendances = await this.getCrewAttendancesOnShifts(shiftsForCrewAtt, tenant);
 
     const localFile = createCrewAttendanceXlsx(allCrewForAtt, shiftsForCrewAtt, crewAttendances, year, tenant);
@@ -74,8 +78,8 @@ export class FileService {
   async exportChildAttendances(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
     const allChildrenForChildAtt = await this.childService.getAll(tenant);
 
-    const shiftsForChildAtt = await this.getShiftsInYear(year, tenant);
-    const childAttendancesForChildAtt = await this.getChildAttendancesOnShifts(shiftsForChildAtt, tenant);
+    const shiftsForChildAtt = await this.shiftService.getShiftsInYear(tenant, year);
+    const childAttendancesForChildAtt = await this.childAttendanceService.getChildAttendancesOnShifts(tenant, shiftsForChildAtt);
 
     const localFile = createChildAttendanceXlsx(allChildrenForChildAtt, shiftsForChildAtt, childAttendancesForChildAtt, year, tenant);
 
@@ -84,11 +88,19 @@ export class FileService {
 
   async exportFiscalCertificatesList(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
     const allChildrenForFiscalCerts = await this.childService.getAll(tenant);
+    const allContactsForFiscalCerts = await this.contactPersonService.getAll(tenant);
 
-    const shiftsForFiscalCerts = await this.getShiftsInYear(year, tenant);
-    const childAttendancesForFiscalCerts = await this.getChildAttendancesOnShifts(shiftsForFiscalCerts, tenant);
+    const shiftsForFiscalCerts = await this.shiftService.getShiftsInYear(tenant, year);
+    const childAttendancesForFiscalCerts = await this.childAttendanceService.getChildAttendancesOnShifts(tenant, shiftsForFiscalCerts);
 
-    const localFile = createAllFiscalCertsXlsx(allChildrenForFiscalCerts, shiftsForFiscalCerts, childAttendancesForFiscalCerts, year, tenant);
+    const localFile = createAllFiscalCertsXlsx(
+      allChildrenForFiscalCerts,
+      allContactsForFiscalCerts,
+      shiftsForFiscalCerts,
+      childAttendancesForFiscalCerts,
+      year,
+      tenant
+    );
 
     return await this.saveFile(localFile, tenant, createdBy, uid, 'crew-attendances');
   }
@@ -161,31 +173,11 @@ export class FileService {
   }
 
 
-  /// Data access helpers
-
-  private async getShiftsInYear(year: number, tenant): Promise<ReadonlyArray<Shift>> {
-    const shifts = await this.shiftService.getAll(tenant);
-
-    return shifts.filter(shift => DayDate.fromDayId(shift.dayId).year === year);
-  }
-
+  // TODO Create crew attendance service and move this method
   private async getCrewAttendancesOnShifts(shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>> {
     const all = await Promise.all(
       shifts.map(shift => this.db.collection('crew-attendances-by-shift').doc(shift.id).get())
     ); // TODO Should use get many
-
-    return all.filter(snapshot => snapshot.exists && snapshot.data().attendances && snapshot.data().tenant === tenant).map(snapshot => {
-      return {
-        shiftId: snapshot.id,
-        attendances: snapshot.data().attendances,
-      };
-    });
-  };
-
-  private async getChildAttendancesOnShifts(shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<IDetailedChildAttendance> }>> {
-    const all = await Promise.all(
-      shifts.map(shift => this.db.collection('child-attendances-by-shift').doc(shift.id).get())
-    );
 
     return all.filter(snapshot => snapshot.exists && snapshot.data().attendances && snapshot.data().tenant === tenant).map(snapshot => {
       return {

@@ -1,5 +1,5 @@
 import { ContactPersonService } from './contact-person.service';
-import { Child, IAddress } from '@hoepel.app/types';
+import { Child, ContactPerson, IAddress } from '@hoepel.app/types';
 
 export class AddressService {
   constructor(
@@ -17,6 +17,23 @@ export class AddressService {
     } else {
       // No address on child, no primary contact person
       return Promise.resolve(null);
+    }
+  }
+
+  static getAddressForChildWithExistingContacts(child: Child, contactPeople: ReadonlyArray<ContactPerson>): IAddress | null {
+    if (child.address.isValid) {
+      return child.address;
+    } else if(child.primaryContactPerson) {
+      const primaryContactPerson =  contactPeople.find(person => person.id === child.primaryContactPerson.contactPersonId);
+
+      if (primaryContactPerson && primaryContactPerson.address.isValid) {
+        return primaryContactPerson.address;
+      } else {
+        return null;
+      }
+    } else {
+      // No address on child, no primary contact person
+      return null;
     }
   }
 
