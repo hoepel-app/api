@@ -16,7 +16,7 @@ export class ChildAttendanceService {
 
   async getChildAttendancesOnShifts(tenant: string, shifts: ReadonlyArray<IShift>): Promise<ReadonlyArray<{
     shiftId: string,
-    attendances: ReadonlyArray<IDetailedChildAttendance>
+    attendances: { [childId: string]: IDetailedChildAttendance }
   }>> {
     const docs = shifts.map(shift => this.db.collection('child-attendances-by-shift').doc(shift.id));
     const all = await this.db.getAll(...docs);

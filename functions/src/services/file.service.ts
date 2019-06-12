@@ -2,7 +2,7 @@ import {
   childListToXlsx,
   childrenWithCommentsListToXlsx,
   createAllFiscalCertsXlsx,
-  createChildAttendanceXlsx,
+  createChildAttendanceXlsx, createChildrenPerDayXlsx,
   createCrewAttendanceXlsx,
   crewListToXlsx,
   LocalFileCreationResult,
@@ -103,6 +103,22 @@ export class FileService {
     );
 
     return await this.saveFile(localFile, tenant, createdBy, uid, 'crew-attendances');
+  }
+
+  async exportChildrenPerDay(tenant: string, createdBy: string, uid: string, year: number): Promise<FirestoreFileDocument> {
+    const allChildrenForFiscalCerts = await this.childService.getAll(tenant);
+    const shifts = await this.shiftService.getShiftsInYear(tenant, year);
+    const childAttendances = await this.childAttendanceService.getChildAttendancesOnShifts(tenant, shifts);
+
+    const localFile = createChildrenPerDayXlsx(
+      allChildrenForFiscalCerts,
+      shifts,
+      childAttendances,
+      year,
+      tenant
+    );
+
+    return await this.saveFile(localFile, tenant, createdBy, uid, 'children-per-day');
   }
 
   async removeFile(tenant: string, uid: string, fileName: string) {

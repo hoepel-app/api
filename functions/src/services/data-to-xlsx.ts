@@ -11,6 +11,7 @@ import {
   Shift,
 } from '@hoepel.app/types';
 import { AddressService } from './address.service';
+import * as _ from 'lodash';
 
 export interface LocalFileCreationResult {
   downloadFileName: string;
@@ -140,7 +141,7 @@ export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: R
 
   const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
   worksheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, ...sortedShifts.map(_ => ({ wch: 22 }))
+    { wch: 20 }, { wch: 25 }, ...sortedShifts.map(ignored => ({ wch: 22 }))
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Aanwezigheden animatoren ${year}`);
@@ -154,7 +155,13 @@ export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: R
   };
 };
 
-export const createChildAttendanceXlsx = (allChildren: ReadonlyArray<Child>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>, year: number, tenant: string): LocalFileCreationResult => {
+export const createChildAttendanceXlsx = (
+  allChildren: ReadonlyArray<Child>,
+  shifts: ReadonlyArray<Shift>,
+  attendances: ReadonlyArray<{ shiftId: string, attendances: { [childId: string]: IDetailedChildAttendance } }>,
+  year: number,
+  tenant: string): LocalFileCreationResult =>
+{
 
   const sortedShifts = Shift.sort(shifts);
 
@@ -183,7 +190,7 @@ export const createChildAttendanceXlsx = (allChildren: ReadonlyArray<Child>, shi
 
   const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
   worksheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, ...sortedShifts.map(_ => ({ wch: 22 }))
+    { wch: 20 }, { wch: 25 }, ...sortedShifts.map(ignored => ({ wch: 22 }))
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Aanwezigheden kinderen ${year}`);
@@ -201,7 +208,7 @@ export const createAllFiscalCertsXlsx = (
   allChildren: ReadonlyArray<Child>,
   allContacts: ReadonlyArray<ContactPerson>,
   shifts: ReadonlyArray<Shift>,
-  attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<IDetailedChildAttendance> }>, year: number, tenant: string
+  attendances: ReadonlyArray<{ shiftId: string, attendances: { [childId: string]: IDetailedChildAttendance } }>, year: number, tenant: string
 ): LocalFileCreationResult => {
 
   const sortedShifts = Shift.sort(shifts);
@@ -248,7 +255,7 @@ export const createAllFiscalCertsXlsx = (
   const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
   worksheet['!cols'] = [
     ... Array(7).fill({ wch: 25 }),
-    ...sortedShifts.map(_ => ({ wch: 22 }))
+    ...sortedShifts.map(ignored => ({ wch: 22 }))
   ];
 
   XLSX.utils.book_append_sheet(workbook, worksheet, `Fiscale attesten ${year}`);
@@ -258,6 +265,57 @@ export const createAllFiscalCertsXlsx = (
     format: 'XLSX',
     description: `Data fiscale attesten ${year}`,
     downloadFileName: `Data fiscale attesten ${year}.xlsx`,
+    file,
+  };
+};
+
+export const createChildrenPerDayXlsx = (
+  allChildren: ReadonlyArray<Child>,
+  shifts: ReadonlyArray<Shift>,
+  attendances: ReadonlyArray<{ shiftId: string, attendances: { [childId: string]: IDetailedChildAttendance } }>,
+  year: number,
+  tenant: string
+): LocalFileCreationResult => {
+
+  const data = _.toPairs(_.groupBy(shifts, shift => shift.dayId))
+    .map(( [dayId, shiftsOnDay] ) => {
+      const attendancesForShiftsOnDay = attendances.filter(att => {
+        return shiftsOnDay.map(shift => shift.id).includes(att.shiftId);
+      });
+
+      const childAttendancesOnDay = attendancesForShiftsOnDay
+        .reduce((a, b) => {
+          return a.concat(_.toPairs(b.attendances).map(pair => ( { ...pair[1], childId: pair[0] })));
+        }, [] as ReadonlyArray<IDetailedChildAttendance & { childId: string }>)
+        .map(att => att.childId);
+
+      const uniqueAttendancesOnDay = [ ...new Set(childAttendancesOnDay) ].length;
+
+      return {
+        day: DayDate.fromDayId(dayId),
+        shifts: shiftsOnDay,
+        attendances: attendancesForShiftsOnDay,
+        uniqueAttendancesOnDay,
+      }
+    })
+    .sort((a, b) => a.day.compareTo(b.day))
+    .map(obj => {
+      return [ obj.day.nativeDate, obj.uniqueAttendancesOnDay ];
+    });
+
+  const workbook = XLSX.utils.book_new();
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet([ ['Dag', 'Aantal unieke kinderen'], ...data ]);
+
+  worksheet['!cols'] = [ { wch: 20 }, { wch: 25 } ];
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, `Aantal kinderen per dag ${year}`);
+  const file = XLSX.write(workbook, {bookType: 'xlsx', bookSST: false, type: 'buffer'});
+
+  return {
+    format: 'XLSX',
+    description: `Aantal kinderen per dag ${year}`,
+    downloadFileName: `Aantal unieke kinderen per dag ${year}.xlsx`,
     file,
   };
 };

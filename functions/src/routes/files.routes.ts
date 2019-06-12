@@ -61,6 +61,8 @@ router.post(
         return res.json(await fileService.exportChildAttendances(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
       case 'fiscal-certificates-list':
         return res.json(await fileService.exportFiscalCertificatesList(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
+      case 'children-per-day':
+        return res.json(await fileService.exportChildrenPerDay(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
       default:
         return res.status(400).json({ error: `No supported exporter found for type ${type}` });
     }
