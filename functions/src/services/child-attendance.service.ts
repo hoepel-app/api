@@ -18,6 +18,10 @@ export class ChildAttendanceService {
     shiftId: string,
     attendances: { [childId: string]: IDetailedChildAttendance }
   }>> {
+    if (shifts.length === 0) {
+      return Promise.resolve([]);
+    }
+
     const docs = shifts.map(shift => this.db.collection('child-attendances-by-shift').doc(shift.id));
     const all = await this.db.getAll(...docs);
 
