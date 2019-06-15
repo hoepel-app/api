@@ -13,7 +13,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@hoepel.app/types": "^1.1.22",
+    "@hoepel.app/types": "^1.1.23",
     "@sentry/node": "^5.4.0",
     "@slack/client": "^5.0.1",
     "cors": "^2.8.5",

@@ -7,7 +7,7 @@ import {
   DayDate,
   IChild,
   ICrew,
-  IDetailedChildAttendance,
+  IDetailedChildAttendance, Price,
   Shift,
 } from '@hoepel.app/types';
 import { AddressService } from './address.service';
@@ -216,8 +216,13 @@ export const createAllFiscalCertsXlsx = (
   const rows = Child.sorted(allChildren).map(child => {
     const address = AddressService.getAddressForChildWithExistingContacts(child, allContacts);
 
+    const primaryContactPerson = child.primaryContactPerson ?
+      allContacts.find(contact => contact.id === child.primaryContactPerson.contactPersonId) || null :
+      null;
+
     return {
       child,
+      primaryContactPerson,
       address: address ? address : new Address({ }),
       attendances: sortedShifts.map(shift => {
         const attendanceForShift = attendances.find(att => att.shiftId === shift.id);
@@ -227,20 +232,30 @@ export const createAllFiscalCertsXlsx = (
           return 0;
         }
       }),
+      totalPaid: Price.total(...sortedShifts.map(shift => {
+        const attendanceForShift = attendances.find(att => att.shiftId === shift.id);
+        if (attendanceForShift && attendanceForShift.attendances[child.id] && attendanceForShift.attendances[child.id].didAttend) {
+          return new Price(attendanceForShift.attendances[child.id].amountPaid);
+        } else {
+          return Price.zero;
+        }
+      })),
     };
   }).filter(row => row.attendances.find(att => att === 1)); // Only children with attendances
 
   const data = [
-    [ ...Array(6).fill(''), 'Dag', ...sortedShifts.map(shift => DayDate.fromDayId(shift.dayId).nativeDate) ],
-    [ ...Array(6).fill(''), 'Type', ...sortedShifts.map(shift => shift.kind) ],
-    [ ...Array(6).fill(''), 'Prijs', ...sortedShifts.map(shift => shift.price.toString()) ],
-    [ 'Voornaam', 'Familienaam', 'Geboortedatum', 'Straat en nummer', 'Postcode', 'Adres', '', ...sortedShifts.map(shift => shift.description) ],
+    [ ...Array(8).fill(''), 'Dag', ...sortedShifts.map(shift => DayDate.fromDayId(shift.dayId).nativeDate) ],
+    [ ...Array(8).fill(''), 'Type', ...sortedShifts.map(shift => shift.kind) ],
+    [ ...Array(8).fill(''), 'Prijs', ...sortedShifts.map(shift => shift.price.toString()) ],
+    [ 'Voornaam', 'Familienaam', 'Totaal (incl. korting)', 'Geboortedatum', 'Contactpersoon', 'Straat en nummer', 'Postcode', 'Stad', '', ...sortedShifts.map(shift => shift.description) ],
     ...rows.map(row => {
       const birthDate = row.child.birthDate ? new DayDate(row.child.birthDate).nativeDate : '';
       return [
         row.child.firstName,
         row.child.lastName,
+        row.totalPaid.toString(),
         birthDate,
+        row.primaryContactPerson ? row.primaryContactPerson.fullName : '',
         (row.address.street || '') + ' ' + (row.address.number || ''),
         row.address.zipCode || '',
         row.address.city || '',
@@ -254,7 +269,7 @@ export const createAllFiscalCertsXlsx = (
 
   const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
   worksheet['!cols'] = [
-    ... Array(7).fill({ wch: 25 }),
+    ... Array(9).fill({ wch: 25 }),
     ...sortedShifts.map(ignored => ({ wch: 22 }))
   ];
 
