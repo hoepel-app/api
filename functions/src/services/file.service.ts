@@ -125,7 +125,7 @@ export class FileService {
     const docs = await this.db.collection('reports').where('refPath', '==', fileName).where('tenant', '==', tenant).get();
 
     if (docs.empty) {
-      throw new Error(`Could not find document for tenant ${tenant} with fileName ${fileName}`)
+      throw new Error(`Could not find document for tenant ${tenant} with fileName ${fileName}`);
     }
 
     await this.storage.file(fileName).delete();

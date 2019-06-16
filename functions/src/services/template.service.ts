@@ -133,7 +133,7 @@ export class TemplateService {
     const reportType = fileMetadata.type;
     const fileNamePrefix = this.getFileNamePrefix(reportType);
 
-    const fileName = `${new Date().getTime().toString()} ${tenant} ${fileNamePrefix} ${childName} ${options.year}`;
+    const fileName = `${new Date().getTime().toString()} ${tenant} ${fileNamePrefix} ${childName} ${options.year}.docx`;
 
     // Upload file to storage
     await this.reportsStorage.file(fileName).save(filledIn, {
