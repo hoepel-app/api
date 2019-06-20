@@ -1,16 +1,49 @@
 import * as admin from 'firebase-admin';
-import { IDetailedChildAttendance, IShift } from '@hoepel.app/types';
+import {
+  ChildAttendancesByChildDoc,
+  ChildAttendancesByShiftDoc,
+  DocumentNotFoundError,
+  IDetailedChildAttendance,
+  IShift,
+  store, TenantIndexedRepository,
+} from '@hoepel.app/types';
+import { FirebaseTenantIndexedRepository } from './repository';
+
+export type IChildAttendanceByChildRepository = TenantIndexedRepository<ChildAttendancesByChildDoc & { id: string }>;
+export type IChildAttendanceByShiftRepository = TenantIndexedRepository<ChildAttendancesByShiftDoc & { id: string }>;
+
+export const createChildAttendanceByChildRepository = (db: admin.firestore.Firestore): IChildAttendanceByChildRepository => {
+  return new FirebaseTenantIndexedRepository<ChildAttendancesByChildDoc, ChildAttendancesByChildDoc & { id: string }>(
+    db,
+    store.childAttendancesByChild,
+  );
+};
+
+export const createChildAttendanceByShiftRepository = (db: admin.firestore.Firestore): IChildAttendanceByShiftRepository => {
+  return new FirebaseTenantIndexedRepository<ChildAttendancesByShiftDoc, ChildAttendancesByShiftDoc & { id: string }>(
+    db,
+    store.childAttendancesByShift,
+  );
+};
 
 export class ChildAttendanceService {
   constructor(
-    private db: admin.firestore.Firestore,
+    private byChildRepository: IChildAttendanceByChildRepository,
+    private byShiftRepository: IChildAttendanceByShiftRepository,
   ) {}
 
-  async getAttendancesForChild(childId: string): Promise<{ [p: string]: IDetailedChildAttendance }> {
-    const attendancesDoc = (await this.db.collection('child-attendances-by-child').doc(childId).get()).data() as
-      { attendances: { [key: string]: IDetailedChildAttendance }  } | undefined;
+  async getAttendancesForChild(tenant: string, childId: string): Promise<{ [p: string]: IDetailedChildAttendance }> {
+    try {
+      const data = await this.byChildRepository.get(tenant, childId);
 
-    return  (attendancesDoc && attendancesDoc.attendances) ? attendancesDoc.attendances : {};
+      return (data && data.attendances) ? data.attendances : {};
+    } catch (e) {
+      if (e instanceof DocumentNotFoundError) {
+        return {};
+      } else {
+        throw e;
+      }
+    }
   }
 
 
@@ -22,13 +55,12 @@ export class ChildAttendanceService {
       return Promise.resolve([]);
     }
 
-    const docs = shifts.map(shift => this.db.collection('child-attendances-by-shift').doc(shift.id));
-    const all = await this.db.getAll(...docs);
+    const all = await this.byShiftRepository.getMany(tenant, shifts.map(shift => shift.id).filter(id => id));
 
-    return all.filter(snapshot => snapshot.exists && snapshot.data().attendances && snapshot.data().tenant === tenant).map(snapshot => {
+    return all.map(attendance => {
       return {
-        shiftId: snapshot.id,
-        attendances: snapshot.data().attendances,
+        shiftId: attendance.id,
+        attendances: attendance.attendances,
       };
     });
   };

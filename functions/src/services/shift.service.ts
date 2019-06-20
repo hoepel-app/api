@@ -7,7 +7,6 @@ export type IShiftRepository = TenantIndexedRepository<Shift>;
 export const createShiftRepository = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedRepository<IShift, Shift>(
   db,
   store.shifts,
-  shiftMapper,
 );
 
 export class ShiftService {

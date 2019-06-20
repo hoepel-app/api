@@ -281,7 +281,7 @@ export class TemplateService {
     const address = await this.addressService.getAddressForChild(tenant, child);
     const organisation = await this.organisationService.getDetails(tenant);
 
-    const attendances = await this.childAttendanceService.getAttendancesForChild(childId);
+    const attendances = await this.childAttendanceService.getAttendancesForChild(tenant, childId);
     const shiftIds = Object.keys(attendances);
     const shifts = Shift.sort((await this.shiftRepository.getMany(tenant, shiftIds)))
       .filter(shift => shift && DayDate.fromDayId(shift.dayId).year === year); // Only keep shifts in this year

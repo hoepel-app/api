@@ -7,5 +7,4 @@ export type ICrewRepository = TenantIndexedRepository<Crew>;
 export const createCrewRepository = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedRepository<ICrew, Crew>(
   db,
   store.crewMembers,
-  crewMapper,
 );

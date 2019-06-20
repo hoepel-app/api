@@ -6,7 +6,11 @@ import { TemplateService } from '../services/template.service';
 import { createChildRepository } from '../services/child.service';
 import { AddressService } from '../services/address.service';
 import { OrganisationService } from '../services/organisation.service';
-import { ChildAttendanceService } from '../services/child-attendance.service';
+import {
+  ChildAttendanceService,
+  createChildAttendanceByChildRepository,
+  createChildAttendanceByShiftRepository,
+} from '../services/child-attendance.service';
 import { createShiftRepository, ShiftService } from '../services/shift.service';
 import { createContactPersonRepository } from '../services/contact-person.service';
 import { asyncMiddleware } from '../util/async-middleware';
@@ -20,7 +24,10 @@ const contactPersonRepository = createContactPersonRepository(db);
 const childRepository = createChildRepository(db);
 const addressService = new AddressService(contactPersonRepository);
 const organisationService = new OrganisationService(db, auth);
-const childAttendanceService = new ChildAttendanceService(db);
+const childAttendanceService = new ChildAttendanceService(
+  createChildAttendanceByChildRepository(db),
+  createChildAttendanceByShiftRepository(db),
+);
 const shiftRepository = createShiftRepository(db);
 
 const templateService = new TemplateService(

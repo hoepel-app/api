@@ -9,7 +9,11 @@ import { createChildRepository } from '../services/child.service';
 import { createCrewRepository } from '../services/crew.service';
 import { createShiftRepository, ShiftService } from '../services/shift.service';
 import { createContactPersonRepository } from '../services/contact-person.service';
-import { ChildAttendanceService } from '../services/child-attendance.service';
+import {
+  ChildAttendanceService,
+  createChildAttendanceByChildRepository,
+  createChildAttendanceByShiftRepository,
+} from '../services/child-attendance.service';
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
@@ -17,7 +21,11 @@ const childRepository = createChildRepository(db);
 const crewRepository = createCrewRepository(db);
 const shiftService = new ShiftService(createShiftRepository(db));
 const contactPersonRepository = createContactPersonRepository(db);
-const childAttendanceService = new ChildAttendanceService(db);
+
+const childAttendanceService = new ChildAttendanceService(
+  createChildAttendanceByChildRepository(db),
+  createChildAttendanceByShiftRepository(db),
+);
 
 const fileService = new FileService(childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, db, storage);
 

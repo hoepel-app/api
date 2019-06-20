@@ -7,5 +7,4 @@ export type IContactPersonRepository = TenantIndexedRepository<ContactPerson>;
 export const createContactPersonRepository = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedRepository<IContactPerson, ContactPerson>(
   db,
   store.contactPeople,
-  contactPersonMapper,
 );
