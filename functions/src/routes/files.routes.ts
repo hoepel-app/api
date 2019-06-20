@@ -5,7 +5,7 @@ import { firebaseHasPermissionMiddleware } from "../middleware/has-permission.mi
 import { FileService } from '../services/file.service';
 import { FileRequestMetadata, FileType } from '@hoepel.app/types';
 import { asyncMiddleware } from '../util/async-middleware';
-import { ChildService } from "../services/child.service";
+import { createChildService } from '../services/child.service';
 import { CrewService } from "../services/crew.service";
 import { ShiftService } from "../services/shift.service";
 import { ContactPersonService } from '../services/contact-person.service';
@@ -13,7 +13,7 @@ import { ChildAttendanceService } from '../services/child-attendance.service';
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
-const childService = new ChildService(db);
+const childService = createChildService(db);
 const crewService = new CrewService(db);
 const shiftService = new ShiftService(db);
 const contactPersonService = new ContactPersonService(db);

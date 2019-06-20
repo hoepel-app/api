@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { firebaseIsAuthenticatedMiddleware } from '../middleware/is-authenticated.middleware';
 import { firebaseHasPermissionMiddleware } from '../middleware/has-permission.middleware';
 import { TemplateService } from '../services/template.service';
-import { ChildService } from '../services/child.service';
+import { createChildService } from '../services/child.service';
 import { AddressService } from '../services/address.service';
 import { OrganisationService } from '../services/organisation.service';
 import { ChildAttendanceService } from '../services/child-attendance.service';
@@ -17,7 +17,7 @@ const templatesStorage = admin.storage().bucket('hoepel-app-templates');
 const reportsStorage = admin.storage().bucket('hoepel-app-reports');
 
 const contactPersonService = new ContactPersonService(db);
-const childService = new ChildService(db);
+const childService = createChildService(db);
 const addressService = new AddressService(contactPersonService);
 const organisationService = new OrganisationService(db, auth);
 const childAttendanceService = new ChildAttendanceService(db);

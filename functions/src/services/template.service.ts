@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as JSZip from 'jszip';
 import * as Docxtemplater from 'docxtemplater';
-import { ChildService } from './child.service';
+import { IChildService } from './child.service';
 import { AddressService } from './address.service';
 import { OrganisationService } from './organisation.service';
 import { ChildAttendanceService } from './child-attendance.service';
@@ -88,7 +88,7 @@ export class TemplateService {
     private db: admin.firestore.Firestore,
     private templatesStorage: any, // Bucket
     private reportsStorage: any, // Bucket
-    private childService: ChildService,
+    private childService: IChildService,
     private addressService: AddressService,
     private organisationService: OrganisationService,
     private childAttendanceService: ChildAttendanceService,

@@ -1,17 +1,11 @@
 import * as admin from 'firebase-admin';
-import { Child, IChild } from '@hoepel.app/types';
-import { CrudService } from './crud.service';
+import { Child, childMapper, IChild, store, TenantIndexedCrudService } from '@hoepel.app/types';
+import { FirebaseTenantIndexedWithIdCrudService } from './crud.service';
 
-export class ChildService extends CrudService<Child, IChild> {
-  collectionName = 'children';
+export type IChildService = TenantIndexedCrudService<Child>;
 
-  constructor(
-    db: admin.firestore.Firestore,
-  ) {
-    super(db);
-  }
-
-  lift(obj: IChild): Child {
-    return new Child(obj);
-  }
-}
+export const createChildService = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedWithIdCrudService<IChild, Child>(
+  db,
+  store.children,
+  childMapper,
+);

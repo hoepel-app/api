@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { Tenant } from "@hoepel.app/types";
+import { permissions as allPermissions, Tenant } from '@hoepel.app/types';
 import { nodemailerMailgun } from "./mailgun";
 
 export class OrganisationService {
@@ -29,7 +29,7 @@ export class OrganisationService {
 
   async addUserToOrganisation(organisationId: string, uid: string): Promise<void> {
     // Get all current permissions - new users starts with all permissions for now
-    const permissions = (await this.db.collection('application').doc('all-permissions').get()).data().permissions;
+    const permissions: ReadonlyArray<string> = allPermissions;
 
     // Insert current tenant in tenants subcollection of this user with set permissions
     await this.db.collection('users').doc(uid).collection('tenants').doc(organisationId).set({

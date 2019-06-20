@@ -15,7 +15,7 @@ import {
   Shift,
 } from '@hoepel.app/types';
 import * as admin from 'firebase-admin';
-import { ChildService } from './child.service';
+import { IChildService } from './child.service';
 import { CrewService } from './crew.service';
 import { ShiftService } from './shift.service';
 import { ContactPersonService } from './contact-person.service';
@@ -36,7 +36,7 @@ interface FirestoreFileDocument {
 
 export class FileService {
   constructor(
-    private childService: ChildService,
+    private childService: IChildService,
     private crewService: CrewService,
     private contactPersonService: ContactPersonService,
     private shiftService: ShiftService,
