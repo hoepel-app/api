@@ -1,22 +1,23 @@
 import * as admin from 'firebase-admin';
-import { DayDate, IShift, Shift } from '@hoepel.app/types';
-import { CrudService } from './crud.service';
+import { DayDate, IShift, Shift, shiftMapper, store, TenantIndexedRepository } from '@hoepel.app/types';
+import { FirebaseTenantIndexedRepository } from './repository';
 
-export class ShiftService extends CrudService<Shift, IShift> {
-  collectionName = 'shifts';
+export type IShiftRepository = TenantIndexedRepository<Shift>;
+
+export const createShiftRepository = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedRepository<IShift, Shift>(
+  db,
+  store.shifts,
+  shiftMapper,
+);
+
+export class ShiftService {
 
   constructor(
-    db: admin.firestore.Firestore,
-  ) {
-    super(db);
-  }
-
-  lift(obj: IShift): Shift {
-    return new Shift(obj);
-  }
+    private shiftRepository: IShiftRepository,
+  ) {}
 
   async getShiftsInYear(tenant: string, year: number): Promise<ReadonlyArray<Shift>> {
-    const shifts = await this.getAll(tenant);
+    const shifts = await this.shiftRepository.getAll(tenant);
     return shifts.filter(shift => DayDate.fromDayId(shift.dayId).year === year);
   }
 

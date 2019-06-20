@@ -292,6 +292,8 @@ export const createChildrenPerDayXlsx = (
   tenant: string
 ): LocalFileCreationResult => {
 
+  // TODO This function should filter out attendances where didAttend === false
+
   const data = _.toPairs(_.groupBy(shifts, shift => shift.dayId))
     .map(( [dayId, shiftsOnDay] ) => {
       const attendancesForShiftsOnDay = attendances.filter(att => {

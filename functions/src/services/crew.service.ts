@@ -1,17 +1,11 @@
 import * as admin from 'firebase-admin';
-import { CrudService } from './crud.service';
-import { Crew, ICrew } from '@hoepel.app/types';
+import { FirebaseTenantIndexedRepository } from './repository';
+import { Crew, crewMapper, ICrew, store, TenantIndexedRepository } from '@hoepel.app/types';
 
-export class CrewService extends CrudService<Crew, ICrew> {
-  collectionName = 'crew-members';
+export type ICrewRepository = TenantIndexedRepository<Crew>;
 
-  constructor(
-    db: admin.firestore.Firestore,
-  ) {
-    super(db);
-  }
-
-  lift(obj: ICrew) {
-    return new Crew(obj)
-  };
-}
+export const createCrewRepository = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedRepository<ICrew, Crew>(
+  db,
+  store.crewMembers,
+  crewMapper,
+);

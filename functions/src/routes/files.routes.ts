@@ -5,21 +5,21 @@ import { firebaseHasPermissionMiddleware } from "../middleware/has-permission.mi
 import { FileService } from '../services/file.service';
 import { FileRequestMetadata, FileType } from '@hoepel.app/types';
 import { asyncMiddleware } from '../util/async-middleware';
-import { createChildService } from '../services/child.service';
-import { CrewService } from "../services/crew.service";
-import { ShiftService } from "../services/shift.service";
-import { ContactPersonService } from '../services/contact-person.service';
+import { createChildRepository } from '../services/child.service';
+import { createCrewRepository } from '../services/crew.service';
+import { createShiftRepository, ShiftService } from '../services/shift.service';
+import { createContactPersonRepository } from '../services/contact-person.service';
 import { ChildAttendanceService } from '../services/child-attendance.service';
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
-const childService = createChildService(db);
-const crewService = new CrewService(db);
-const shiftService = new ShiftService(db);
-const contactPersonService = new ContactPersonService(db);
+const childRepository = createChildRepository(db);
+const crewRepository = createCrewRepository(db);
+const shiftService = new ShiftService(createShiftRepository(db));
+const contactPersonRepository = createContactPersonRepository(db);
 const childAttendanceService = new ChildAttendanceService(db);
 
-const fileService = new FileService(childService, crewService, contactPersonService, shiftService, childAttendanceService, db, storage);
+const fileService = new FileService(childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, db, storage);
 
 export const router = Router();
 

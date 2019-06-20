@@ -1,16 +1,16 @@
-import { ContactPersonService } from './contact-person.service';
+import { IContactPersonRepository } from './contact-person.service';
 import { Child, ContactPerson, IAddress } from '@hoepel.app/types';
 
 export class AddressService {
   constructor(
-    private contactPersonService: ContactPersonService,
+    private contactPersonRepository: IContactPersonRepository,
   ) {}
 
   async getAddressForChild(tenant: string, child: Child): Promise<IAddress | null> {
     if (child.address.isValid) {
       return Promise.resolve(child.address);
     } else if(child.primaryContactPerson) {
-      const primaryContactPerson = await this.contactPersonService.get(tenant, child.primaryContactPerson.contactPersonId);
+      const primaryContactPerson = await this.contactPersonRepository.get(tenant, child.primaryContactPerson.contactPersonId);
 
       return primaryContactPerson.address.isValid ? primaryContactPerson.address : null;
 

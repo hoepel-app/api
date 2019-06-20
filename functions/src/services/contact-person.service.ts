@@ -1,17 +1,11 @@
 import * as admin from 'firebase-admin';
-import { ContactPerson, IContactPerson } from '@hoepel.app/types';
-import { CrudService } from './crud.service';
+import { ContactPerson, contactPersonMapper, IContactPerson, store, TenantIndexedRepository } from '@hoepel.app/types';
+import { FirebaseTenantIndexedRepository } from './repository';
 
-export class ContactPersonService extends CrudService<ContactPerson, IContactPerson> {
-  collectionName = 'contact-people';
+export type IContactPersonRepository = TenantIndexedRepository<ContactPerson>;
 
-  constructor(
-    db: admin.firestore.Firestore,
-  ) {
-    super(db);
-  }
-
-  lift(obj: IContactPerson): ContactPerson {
-    return new ContactPerson(obj);
-  }
-}
+export const createContactPersonRepository = (db: admin.firestore.Firestore) => new FirebaseTenantIndexedRepository<IContactPerson, ContactPerson>(
+  db,
+  store.contactPeople,
+  contactPersonMapper,
+);

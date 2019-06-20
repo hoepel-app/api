@@ -1,11 +1,11 @@
 import * as admin from 'firebase-admin';
 import * as JSZip from 'jszip';
 import * as Docxtemplater from 'docxtemplater';
-import { IChildService } from './child.service';
+import { IChildRepository } from './child.service';
 import { AddressService } from './address.service';
 import { OrganisationService } from './organisation.service';
 import { ChildAttendanceService } from './child-attendance.service';
-import { ShiftService } from './shift.service';
+import { IShiftRepository, ShiftService } from './shift.service';
 import { DayDate, FileType, Price, Shift } from '@hoepel.app/types';
 import * as _ from 'lodash';
 import dropTenant from '../util/drop-tenant';
@@ -88,11 +88,11 @@ export class TemplateService {
     private db: admin.firestore.Firestore,
     private templatesStorage: any, // Bucket
     private reportsStorage: any, // Bucket
-    private childService: IChildService,
+    private childRepository: IChildRepository,
     private addressService: AddressService,
     private organisationService: OrganisationService,
     private childAttendanceService: ChildAttendanceService,
-    private shiftService: ShiftService,
+    private shiftRepository: IShiftRepository,
   ) {
   }
 
@@ -277,13 +277,13 @@ export class TemplateService {
   }
 
   private async getChildData(tenant: string, childId: string, year: number): Promise<CertificateTemplateFillInData> {
-    const child = await this.childService.get(tenant, childId);
+    const child = await this.childRepository.get(tenant, childId);
     const address = await this.addressService.getAddressForChild(tenant, child);
     const organisation = await this.organisationService.getDetails(tenant);
 
     const attendances = await this.childAttendanceService.getAttendancesForChild(childId);
     const shiftIds = Object.keys(attendances);
-    const shifts = Shift.sort((await this.shiftService.getMany(tenant, shiftIds)))
+    const shifts = Shift.sort((await this.shiftRepository.getMany(tenant, shiftIds)))
       .filter(shift => shift && DayDate.fromDayId(shift.dayId).year === year); // Only keep shifts in this year
     const numberOfUniqueDays = ShiftService.numberOfUniqueDays(shifts);
 
