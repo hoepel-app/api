@@ -4,14 +4,11 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
-export const onUserDelete = functions.region('europe-west1').auth.user().onDelete(async user => {
+export const onUserDeletedSendMailAndDeleteDoc = functions.region('europe-west1').auth.user().onDelete(async user => {
   console.log(`Deleting ${user.uid}`);
 
   const userDoc = await db.collection('users').doc(user.uid).get();
   const tenantDocs = await db.collection('users').doc(user.uid).collection('tenants').get();
-
-  await Promise.all(tenantDocs.docs.map(doc => doc.ref.delete()));
-  await userDoc.ref.delete();
 
   await nodemailerMailgun.sendMail({
     from: 'noreply@mail.hoepel.app',
@@ -33,5 +30,6 @@ export const onUserDelete = functions.region('europe-west1').auth.user().onDelet
     }],
   });
 
-  return {};
+  await Promise.all(tenantDocs.docs.map(doc => doc.ref.delete()));
+  await userDoc.ref.delete();
 });
