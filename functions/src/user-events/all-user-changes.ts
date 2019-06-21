@@ -6,7 +6,7 @@ import UserRecord = admin.auth.UserRecord;
 const db = admin.firestore();
 
 export const onUserCreatedSaveEvent = functions.region('europe-west1').auth.user().onCreate(async (user, context) => {
-  const event: IEvent<UserRecord> = {
+  const event: IEvent<any> = {
     timestamp: new Date(context.timestamp).getTime(),
     type: 'created',
     resource: 'auth',
@@ -16,7 +16,7 @@ export const onUserCreatedSaveEvent = functions.region('europe-west1').auth.user
       tenant: 'global',
     },
     auth: {
-      userRecord: user,
+      userRecord: JSON.parse(JSON.stringify(user.toJSON())), // UserRecord may contain undefined values, this gets rid of them
     },
   };
 
@@ -24,7 +24,7 @@ export const onUserCreatedSaveEvent = functions.region('europe-west1').auth.user
 });
 
 export const onUserDeletedSaveEvent = functions.region('europe-west1').auth.user().onDelete(async (user, context) => {
-  const event: IEvent<UserRecord> = {
+  const event: IEvent<any> = {
     timestamp: new Date(context.timestamp).getTime(),
     type: 'deleted',
     resource: 'auth',
@@ -34,7 +34,7 @@ export const onUserDeletedSaveEvent = functions.region('europe-west1').auth.user
       tenant: 'global',
     },
     auth: {
-      userRecord: user,
+      userRecord: JSON.parse(JSON.stringify(user.toJSON())), // UserRecord may contain undefined values, this gets rid of them
     },
   };
 
