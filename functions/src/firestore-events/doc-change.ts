@@ -110,7 +110,7 @@ const createEvent = (
             tenant,
             ...getContextIdsForEvent(type, collectionId, documentId, before, after),
           },
-          new Date(),
+          new Date(timestamp),
         );
 
       case 'updated':
@@ -122,7 +122,7 @@ const createEvent = (
             tenant,
             ...getContextIdsForEvent(type, collectionId, documentId, before, after),
           },
-          new Date(),
+          new Date(timestamp),
         );
 
       case 'deleted':
@@ -133,7 +133,7 @@ const createEvent = (
             tenant,
             ...getContextIdsForEvent(type, collectionId, documentId, before, after),
           },
-          new Date(),
+          new Date(timestamp),
         );
 
       default: throw new Error(`Unrecognized Firestore event type ${type}`);
