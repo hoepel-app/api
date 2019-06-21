@@ -16,6 +16,8 @@ const getTenant = (collectionId: string, beforeDoc?: any, afterDoc?: any): strin
 
   if (collectionsWithTenantIds.includes(collectionId)) {
     return collectionId;
+  } else if (collectionId === store.users.collectionName) {
+    return 'global'; // user document in this collection are global or may span tenants
   } else if (afterDoc && afterDoc.tenant) {
     return afterDoc.tenant;
   } else if (beforeDoc && beforeDoc.tenant) {
