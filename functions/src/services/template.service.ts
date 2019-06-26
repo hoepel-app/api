@@ -27,6 +27,8 @@ interface CertificateTemplateFillInData {
   readonly aantal_dagen: string,
   readonly prijs_per_dag: string,
   readonly totale_prijs: string,
+
+  readonly attest_id: string,
 }
 
 interface CertificateTemplateFillInOptions {
@@ -81,6 +83,8 @@ const exampleData: CertificateTemplateFillInData = {
   aantal_dagen: 'Aantal dagen komt hier',
   prijs_per_dag: 'Prijs per dag komt hier',
   totale_prijs: 'Totale prijs komt hier',
+
+  attest_id: 'Attest identificatie',
 };
 
 export class TemplateService {
@@ -124,7 +128,9 @@ export class TemplateService {
   }
 
   async fillInChildTemplate(tenant: string, options: CertificateTemplateFillInOptions) {
-    const data = await this.getChildData(tenant, options.childId, options.year);
+    const docToSaveRef = this.db.collection('reports').doc();
+    const reportId = docToSaveRef.id;
+    const data = await this.getChildData(tenant, options.childId, options.year, reportId);
     const childName = data.kind_naam;
     const filledIn = await this.getAndFillTemplate(tenant, options.templateFileName, data);
     const expires = this.getExpirationDate(new Date());
@@ -163,7 +169,7 @@ export class TemplateService {
       fillInParameters: data,
     };
 
-    await this.db.collection('reports').add(docToSave);
+    await docToSaveRef.set(docToSave);
 
     return docToSave;
   }
@@ -276,7 +282,7 @@ export class TemplateService {
     return expires;
   }
 
-  private async getChildData(tenant: string, childId: string, year: number): Promise<CertificateTemplateFillInData> {
+  private async getChildData(tenant: string, childId: string, year: number, reportId: string): Promise<CertificateTemplateFillInData> {
     const child = await this.childRepository.get(tenant, childId);
     const address = await this.addressService.getAddressForChild(tenant, child);
     const organisation = await this.organisationService.getDetails(tenant);
@@ -324,6 +330,8 @@ export class TemplateService {
       aantal_dagen: `${numberOfUniqueDays} (${shifts.length} dagdelen/activiteiten)`,
       prijs_per_dag: pricePerShift,
       totale_prijs: totalPricePaid.toString(),
+
+      attest_id: reportId,
     };
   }
 }
