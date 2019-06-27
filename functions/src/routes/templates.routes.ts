@@ -35,6 +35,7 @@ const templateService = new TemplateService(
   templatesStorage,
   reportsStorage,
   childRepository,
+  contactPersonRepository,
   addressService,
   organisationService,
   childAttendanceService,

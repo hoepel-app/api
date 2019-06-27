@@ -9,12 +9,15 @@ import { IShiftRepository, ShiftService } from './shift.service';
 import { DayDate, FileType, Price, Shift } from '@hoepel.app/types';
 import * as _ from 'lodash';
 import dropTenant from '../util/drop-tenant';
+import { IContactPersonRepository } from './contact-person.service';
 
 interface CertificateTemplateFillInData {
   readonly kind_naam: string,
   readonly kind_adres: string,
   readonly kind_telefoon: string,
   readonly kind_geboortedatum: string,
+
+  readonly contactpersoon_naam: string,
 
   readonly organisator_naam: string,
   readonly organisator_adres: string,
@@ -72,6 +75,8 @@ const exampleData: CertificateTemplateFillInData = {
   kind_telefoon: 'Voorbeeld telefoon kind',
   kind_geboortedatum: 'Voorbeeld geboortedatum',
 
+  contactpersoon_naam: 'Naam contactpersoon komt hier',
+
   organisator_naam: 'Naam organisator komt hier',
   organisator_adres: 'Adres organisator komt hier',
   organisator_email: 'Email organisator komt hier',
@@ -93,6 +98,7 @@ export class TemplateService {
     private templatesStorage: any, // Bucket
     private reportsStorage: any, // Bucket
     private childRepository: IChildRepository,
+    private contactPersonRepository: IContactPersonRepository,
     private addressService: AddressService,
     private organisationService: OrganisationService,
     private childAttendanceService: ChildAttendanceService,
@@ -284,6 +290,9 @@ export class TemplateService {
 
   private async getChildData(tenant: string, childId: string, year: number, reportId: string): Promise<CertificateTemplateFillInData> {
     const child = await this.childRepository.get(tenant, childId);
+    const primaryContactPerson = child.primaryContactPerson ?
+      await this.contactPersonRepository.get(tenant, child.primaryContactPerson.contactPersonId) : null;
+
     const address = await this.addressService.getAddressForChild(tenant, child);
     const organisation = await this.organisationService.getDetails(tenant);
 
@@ -318,6 +327,8 @@ export class TemplateService {
       kind_adres: AddressService.formatAddress(address),
       kind_telefoon: child.phone[0] ? (child.phone[0].phoneNumber || '') : '',
       kind_geboortedatum: child.birthDate.toDDMMYYYY('/'),
+
+      contactpersoon_naam: primaryContactPerson ? primaryContactPerson.fullName : '(geen contactpersoon toegevoegd)',
 
       organisator_naam: organisation.name,
       organisator_adres: organisationAddress,
