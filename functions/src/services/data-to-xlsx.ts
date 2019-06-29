@@ -7,11 +7,31 @@ import {
   DayDate,
   IChild,
   ICrew,
-  IDetailedChildAttendance, Price,
+  IDetailedChildAttendance,
+  Price,
   Shift,
 } from '@hoepel.app/types';
 import { AddressService } from './address.service';
 import * as _ from 'lodash';
+
+// Supported types for Excel cells
+export type ExcelCellValue = string | number | boolean | DayDate | Price;
+
+export interface ExcelWorksheet {
+  name: string;
+
+  columns: ReadonlyArray<{
+    values: ReadonlyArray<ExcelCellValue>,
+    width?: number,
+  }>;
+}
+
+// This interface decouples the results so they don't use SheetJS directly
+// TODO should be used in all functions in this file (and then they should be refactored into classes)
+export interface ExcelData {
+  filename?: string;
+  worksheets: ReadonlyArray<ExcelWorksheet>;
+}
 
 export interface LocalFileCreationResult {
   downloadFileName: string;
@@ -20,96 +40,174 @@ export interface LocalFileCreationResult {
   format: 'XLSX' | 'PDF' | 'DOCX';
 }
 
-export const childListToXlsx = (children: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {
-  const rows = children.map((child: IChild) => {
-    const birthDate = child.birthDate ? new DayDate(child.birthDate).nativeDate : '';
+export const createExcelFile = (data: ExcelData): LocalFileCreationResult => {
 
-    return { firstName: child.firstName, lastName: child.lastName, birthDate, remarks: child.remarks };
-  });
+  // Turn cell value into a sheetjs-compatible value
+  const transformCellValue = (v: ExcelCellValue): XLSX.CellObject => {
+    if (typeof  v === 'number') {
+      return { v, t: 'n' };
+    } else if (typeof v === 'string') {
+      return { v, t: 's' };
+    } else if (typeof v === 'boolean') {
+      return { v: v ? 1 : 0, t: 'n' };
+    } else if (v instanceof DayDate) {
+      return { v: v.nativeDate, t: 'd' };
+    } else if (v instanceof Price) {
+      return { v: v.toString(), t: 's'}; // TODO currency formatting
+    } else if (v === undefined) {
+      return { t: 'z' };
+    } else {
+      throw new Error(`Could not transform unsupported cell value: ${v} (type: ${typeof v})`);
+    }
+  };
 
-  const data = [
-    [ 'Voornaam', 'Familienaam', 'Geboortedatum', 'Opmerkingen' ],
-    ...rows.map(row => [ row.firstName, row.lastName, row.birthDate, row.remarks ]),
-  ];
+  const createWorksheet = (ws: ExcelWorksheet): XLSX.WorkSheet => {
+    const result: XLSX.WorkSheet = {};
+
+    ws.columns.forEach(( column, columnIdx ) => {
+      column.values.forEach((cellValue, rowIdx) => {
+        result[XLSX.utils.encode_cell({ c: columnIdx, r: rowIdx })] = transformCellValue(cellValue);
+      });
+    });
+
+    // Set column widths
+    result['!cols'] = ws.columns.map(column => column.width ? ({ wch: column.width }) : {});
+
+    // Set sheet range
+    const numColumns = ws.columns.length;
+    const numRows = Math.max(...ws.columns.map(column => column.values.length));
+    result['!ref'] = XLSX.utils.encode_cell({ c: 0, r: 0 })
+      + ':'
+      + XLSX.utils.encode_cell({ c: numColumns + 1, r: numRows + 1 });
+
+    console.log(JSON.stringify(result));
+
+    return result;
+  };
 
   const workbook = XLSX.utils.book_new();
 
-  const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
-  worksheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 75 },
-  ];
+  data.worksheets.forEach(worksheet => {
+    XLSX.utils.book_append_sheet(workbook, createWorksheet(worksheet), worksheet.name)
+  });
 
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Alle kinderen');
   const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
 
   return {
     format: 'XLSX',
-    description: 'Alle kinderen',
-    downloadFileName: 'Alle kinderen.xlsx',
+    description: data.filename,
+    downloadFileName: data.filename + '.xlsx',
     file,
   };
 };
 
-
-export const crewListToXlsx = (allCrew: ReadonlyArray<ICrew>, tenant: string): LocalFileCreationResult => {
-  const rows = allCrew.map((crew: ICrew) => {
-    const birthDate = crew.birthDate ? new DayDate(crew.birthDate).nativeDate : '';
-
-    return { firstName: crew.firstName, lastName: crew.lastName, birthDate, remarks: crew.remarks };
-  });
-
-  const data = [
-    [ 'Voornaam', 'Familienaam', 'Geboortedatum', 'Opmerkingen' ],
-    ...rows.map(row => [ row.firstName, row.lastName, row.birthDate, row.remarks ]),
-  ];
-
-  const workbook = XLSX.utils.book_new();
-
-  const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
-  worksheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 75 },
-  ];
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Alle animatoren');
-  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
-
-  return {
-    format: 'XLSX',
-    description: 'Alle animatoren',
-    downloadFileName: 'Alle animatoren.xlsx',
-    file,
+export const childListToXlsx = (list: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {
+  const data: ExcelData = {
+    worksheets: [
+      {
+        name: 'Alle kinderen',
+        columns: [
+          { values: [ 'Voornaam', ...list.map(row => row.firstName) ], width: 20 },
+          { values: [ 'Familienaam', ...list.map(row => row.lastName) ], width: 25 },
+          { values: [ 'Geboortedatum', ...list.map(row => row.birthDate ? new DayDate(row.birthDate) : undefined) ], width: 15 },
+          { values: [ 'Telefoonnummer', ...list.map(row => {
+              return row.phone.map(p => p.phoneNumber + (p.comment ? `(${p.comment})` : '') ).join(', ');
+            })], width: 25
+          },
+          { values: [ 'Emailadres', ...list.map(row => row.email.join(', '))], width: 25 },
+          { values: [ 'Adres', ...list.map(row => new Address(row.address).formatted()) ], width: 30 },
+          { values: [ 'Gender', ...list.map(row => {
+              switch (row.gender) {
+                case 'male': return 'Man';
+                case 'female': return 'Vrouw';
+                case 'other': return 'Anders';
+                default: return '';
+              }
+            }) ] },
+          { values: [ 'Uitpasnummer', ...list.map(row => row.uitpasNumber) ], width: 25 },
+          { values: [ 'Opmerkingen', ...list.map(row => row.remarks) ], width: 75 },
+        ]
+      }
+    ],
+    filename: 'Alle kinderen',
   };
+
+  return createExcelFile(data);
 };
 
-export const childrenWithCommentsListToXlsx = (children: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {
-  const rows = children.map((child: IChild) => {
-    const birthDate = child.birthDate ? new DayDate(child.birthDate).nativeDate : '';
 
-    return { firstName: child.firstName, lastName: child.lastName, birthDate, remarks: child.remarks };
-  });
+export const crewListToXlsx = (list: ReadonlyArray<ICrew>, tenant: string): LocalFileCreationResult => {
+  const data: ExcelData = {
+    worksheets: [
+      {
+        name: 'Alle animatoren',
+        columns: [
+          { values: [ 'Voornaam', ...list.map(row => row.firstName) ], width: 20 },
+          { values: [ 'Familienaam', ...list.map(row => row.lastName) ], width: 25 },
+          { values: [ 'Geboortedatum', ...list.map(row => row.birthDate ? new DayDate(row.birthDate) : undefined) ], width: 15 },
+          { values: [ 'Telefoonnummer', ...list.map(row => {
+              return row.phone.map(p => p.phoneNumber + (p.comment ? `(${p.comment})` : '') ).join(', ');
+            })], width: 25
+          },
+          { values: [ 'Emailadres', ...list.map(row => row.email.join(', '))], width: 25 },
+          { values: [ 'Adres', ...list.map(row => new Address(row.address).formatted()) ], width: 30 },
+          { values: [ 'Actief', ...list.map(row => row.active ? 'Ja' : 'Nee' ) ] },
+          { values: [ 'Rekeningnummer', ...list.map(row => row.bankAccount ) ], width: 25 },
+          { values: [ 'Gestart in', ...list.map(row => row.yearStarted ) ] },
+          { values: [ 'Attesten', ...list.map(row => {
+            if (!row.certificates) {
+              return '';
+            }
 
-  const data = [
-    [ 'Voornaam', 'Familienaam', 'Geboortedatum', 'Opmerkingen' ],
-    ...rows.map(row => [ row.firstName, row.lastName, row.birthDate, row.remarks ]),
-  ];
-
-  const workbook = XLSX.utils.book_new();
-
-  const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(data);
-  worksheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 75 },
-  ];
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Alle kinderen met opmerking');
-
-  const file = XLSX.write(workbook, { bookType: 'xlsx', bookSST: false, type: 'buffer' });
-
-  return {
-    format: 'XLSX',
-    description: 'Alle kinderen met opmerking',
-    downloadFileName: 'Alle kinderen met opmerking.xlsx',
-    file,
+            return [
+              row.certificates.hasPlayworkerCertificate ? 'Attest animator' : '',
+              row.certificates.hasTeamleaderCertificate ? 'Attest hoofdanimator' : '',
+              row.certificates.hasTrainerCertificate ? 'Attest instructeur' : '',
+            ].filter(x => x).join(', ')
+            }) ], width: 35 },
+          { values: [ 'Opmerkingen', ...list.map(row => row.remarks) ], width: 75 },
+        ]
+      }
+    ],
+    filename: 'Alle animatoren',
   };
+
+
+  return createExcelFile(data);
+};
+
+export const childrenWithCommentsListToXlsx = (list: ReadonlyArray<IChild>, tenant: string): LocalFileCreationResult => {
+  const data: ExcelData = {
+    worksheets: [
+      {
+        name: 'Kinderen met opmerking',
+        columns: [
+          { values: [ 'Voornaam', ...list.map(row => row.firstName) ], width: 20 },
+          { values: [ 'Familienaam', ...list.map(row => row.lastName) ], width: 25 },
+          { values: [ 'Geboortedatum', ...list.map(row => row.birthDate ? new DayDate(row.birthDate) : undefined) ], width: 15 },
+          { values: [ 'Telefoonnummer', ...list.map(row => {
+              return row.phone.map(p => p.phoneNumber + (p.comment ? `(${p.comment})` : '') ).join(', ');
+            })], width: 25
+          },
+          { values: [ 'Emailadres', ...list.map(row => row.email.join(', '))], width: 25 },
+          { values: [ 'Adres', ...list.map(row => new Address(row.address).formatted()) ], width: 30 },
+          { values: [ 'Gender', ...list.map(row => {
+              switch (row.gender) {
+                case 'male': return 'Man';
+                case 'female': return 'Vrouw';
+                case 'other': return 'Anders';
+                default: return '';
+              }
+            }) ] },
+          { values: [ 'Uitpasnummer', ...list.map(row => row.uitpasNumber) ], width: 25 },
+          { values: [ 'Opmerkingen', ...list.map(row => row.remarks) ], width: 75 },
+        ]
+      }
+    ],
+    filename: 'Alle kinderen',
+  };
+
+  return createExcelFile(data);
 };
 
 export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>, year: number, tenant: string): LocalFileCreationResult => {
