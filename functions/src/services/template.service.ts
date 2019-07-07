@@ -326,7 +326,7 @@ export class TemplateService {
       kind_naam: child.fullName,
       kind_adres: AddressService.formatAddress(address),
       kind_telefoon: child.phone[0] ? (child.phone[0].phoneNumber || '') : '',
-      kind_geboortedatum: child.birthDate.toDDMMYYYY('/'),
+      kind_geboortedatum: child.birthDate ? child.birthDate.toDDMMYYYY('/') : '(geen geboortedatum opgegeven)',
 
       contactpersoon_naam: primaryContactPerson ? primaryContactPerson.fullName : '(geen contactpersoon toegevoegd)',
 
