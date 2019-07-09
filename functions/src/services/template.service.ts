@@ -314,9 +314,9 @@ export class TemplateService {
 
         return `${day.toString()} (${shift.kind}): ${price.toString()}`;
       })
-      .join(', ');
+      .join('\n');
 
-    const specificDates = shifts.map(shift => DayDate.fromDayId(shift.dayId).toString() + ' (' + shift.kind + ')').join(', ');
+    const specificDates = shifts.map(shift => DayDate.fromDayId(shift.dayId).toString() + ' (' + shift.kind + ')').join('\n');
 
     const organisationAddress = (organisation.address.streetAndNumber || '') + ', ' +
       (organisation.address.zipCode || '') + ' ' +
