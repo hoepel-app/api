@@ -8,6 +8,9 @@ Set these keys using `firebase functions:config`.
 
 ```
 {
+  "cloudbuild": {
+    "slackwebhook": "https://hooks.slack.com/services/..."
+  },
   "mailgun": {
     "apikey": "...",
     "domain": "..."

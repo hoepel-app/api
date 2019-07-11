@@ -4,7 +4,7 @@ import { IncomingWebhook } from '@slack/client';
 // Send Slack message on build events
 // Based on https://cloud.google.com/cloud-build/docs/configure-third-party-notifications
 
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+const SLACK_WEBHOOK_URL = functions.config().cloudbuild.slackwebhook;
 
 const webhook = new IncomingWebhook(SLACK_WEBHOOK_URL);
 
