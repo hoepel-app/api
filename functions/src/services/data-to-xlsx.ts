@@ -7,7 +7,7 @@ import {
   DayDate, DetailedAttendancesOnShift, DetailedAttendancesOnShifts,
   IChild,
   ICrew,
-  IDetailedChildAttendance,
+  IDetailedChildAttendance, IDetailedCrewAttendance,
   Price,
   Shift,
 } from '@hoepel.app/types';
@@ -209,12 +209,18 @@ export const childrenWithCommentsListToXlsx = (list: ReadonlyArray<IChild>, tena
   return createExcelFile(data);
 };
 
-export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>, year: number, tenant: string): LocalFileCreationResult => {
+export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: ReadonlyArray<Shift>, attendances: ReadonlyArray<{
+  shiftId: string,
+  attendances: { [crewId: string]: IDetailedCrewAttendance }
+}>, year: number, tenant: string): LocalFileCreationResult => {
 
   const sortedShifts = Shift.sort(shifts);
+  const richAttendances = new DetailedAttendancesOnShifts(
+    attendances.map(att => new DetailedAttendancesOnShift(att.shiftId, {}, att.attendances))
+  );
   const filteredCrew = Crew
     .sorted(allCrew)
-    .filter(crew => attendances.map(att => !!att.attendances[crew.id]).includes(true));
+    .filter(crew => richAttendances.numberOfCrewMemberAttendances(crew.id) > 0)
 
   const data: ExcelData = {
     worksheets: [
@@ -231,14 +237,7 @@ export const createCrewAttendanceXlsx = (allCrew: ReadonlyArray<Crew>, shifts: R
                 DayDate.fromDayId(shift.dayId),
                 shift.kind,
                 shift.description,
-                ...filteredCrew.map(crew => {
-                  const attendanceForShift = attendances.find(att => att.shiftId === shift.id);
-                  if (attendanceForShift && attendanceForShift.attendances[crew.id] && attendanceForShift.attendances[crew.id].didAttend) {
-                    return 1;
-                  } else {
-                    return 0;
-                  }
-                }),
+                ...filteredCrew.map(crew => richAttendances.didCrewMemberAttend(crew.id, shift.id)),
               ],
               width: 22,
             }

@@ -14,6 +14,10 @@ import {
   createChildAttendanceByChildRepository,
   createChildAttendanceByShiftRepository,
 } from '../services/child-attendance.service';
+import {
+  createCrewAttendanceByCrewRepository,
+  createCrewAttendanceByShiftRepository, CrewAttendanceService,
+} from '../services/crew-attendance.service';
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
@@ -27,7 +31,12 @@ const childAttendanceService = new ChildAttendanceService(
   createChildAttendanceByShiftRepository(db),
 );
 
-const fileService = new FileService(childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, db, storage);
+const crewAttendanceService = new CrewAttendanceService(
+  createCrewAttendanceByCrewRepository(db),
+  createCrewAttendanceByShiftRepository(db),
+);
+
+const fileService = new FileService(childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, crewAttendanceService, db, storage);
 
 export const router = Router();
 

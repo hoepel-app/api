@@ -8,11 +8,8 @@ import {
   LocalFileCreationResult,
 } from './data-to-xlsx';
 import {
-  DayDate,
   FileType,
-  IDetailedChildAttendance,
   IShift,
-  Shift,
 } from '@hoepel.app/types';
 import * as admin from 'firebase-admin';
 import { IChildRepository } from './child.service';
@@ -20,6 +17,7 @@ import { ICrewRepository } from './crew.service';
 import { ShiftService } from './shift.service';
 import { IContactPersonRepository } from './contact-person.service';
 import { ChildAttendanceService } from './child-attendance.service';
+import { CrewAttendanceService } from './crew-attendance.service';
 
 interface FirestoreFileDocument {
   expires: Date;
@@ -41,6 +39,7 @@ export class FileService {
     private contactPersonRepository: IContactPersonRepository,
     private shiftService: ShiftService,
     private childAttendanceService: ChildAttendanceService,
+    private crewAttendanceService: CrewAttendanceService,
     private db: admin.firestore.Firestore, // TODO refactor so this service does not use db directly
     private storage: any, // Bucket
   ) {}
@@ -68,7 +67,7 @@ export class FileService {
     const allCrewForAtt = (await this.crewRepository.getAll(tenant)).filter(crew => crew.active);
 
     const shiftsForCrewAtt = await this.shiftService.getShiftsInYear(tenant, year);
-    const crewAttendances = await this.getCrewAttendancesOnShifts(shiftsForCrewAtt, tenant);
+    const crewAttendances = await this.crewAttendanceService.getCrewAttendancesOnShifts(tenant, shiftsForCrewAtt);
 
     const localFile = createCrewAttendanceXlsx(allCrewForAtt, shiftsForCrewAtt, crewAttendances, year, tenant);
 
@@ -187,19 +186,4 @@ export class FileService {
   private async saveToFirestore(doc: FirestoreFileDocument): Promise<void> {
     await this.db.collection('reports').add(doc);
   }
-
-
-  // TODO Create crew attendance service and move this method
-  private async getCrewAttendancesOnShifts(shifts: ReadonlyArray<IShift>, tenant: string): Promise<ReadonlyArray<{ shiftId: string, attendances: ReadonlyArray<any> }>> {
-    const all = await Promise.all(
-      shifts.map(shift => this.db.collection('crew-attendances-by-shift').doc(shift.id).get())
-    ); // TODO Should use get many
-
-    return all.filter(snapshot => snapshot.exists && snapshot.data().attendances && snapshot.data().tenant === tenant).map(snapshot => {
-      return {
-        shiftId: snapshot.id,
-        attendances: snapshot.data().attendances,
-      };
-    });
-  };
 }
