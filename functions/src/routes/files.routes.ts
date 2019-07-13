@@ -18,9 +18,11 @@ import {
   createCrewAttendanceByCrewRepository,
   createCrewAttendanceByShiftRepository, CrewAttendanceService,
 } from '../services/crew-attendance.service';
+import { XlsxExporter } from '../services/exporters/exporter';
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
+const xlsxExporter = new XlsxExporter();
 const childRepository = createChildRepository(db);
 const crewRepository = createCrewRepository(db);
 const shiftService = new ShiftService(createShiftRepository(db));
@@ -36,7 +38,7 @@ const crewAttendanceService = new CrewAttendanceService(
   createCrewAttendanceByShiftRepository(db),
 );
 
-const fileService = new FileService(childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, crewAttendanceService, db, storage);
+const fileService = new FileService(xlsxExporter, childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, crewAttendanceService, db, storage);
 
 export const router = Router();
 
