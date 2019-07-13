@@ -4,7 +4,7 @@ import {
   Child,
   ContactPerson,
   Crew,
-  DayDate, DetailedChildAttendancesOnShift, DetailedChildAttendancesOnShifts,
+  DayDate, DetailedAttendancesOnShift, DetailedAttendancesOnShifts,
   IChild,
   ICrew,
   IDetailedChildAttendance,
@@ -261,10 +261,13 @@ export const createChildAttendanceXlsx = (
 {
 
   const sortedShifts = Shift.sort(shifts);
+  const richAttendances = new DetailedAttendancesOnShifts(
+    attendances.map(att => new DetailedAttendancesOnShift(att.shiftId, att.attendances, {}))
+  );
+
   const filteredChildren = Child
     .sorted(allChildren)
-    // Only children with attendances
-    .filter(child => attendances.map(att => !!att.attendances[child.id]).includes(true));
+    .filter(child => richAttendances.numberOfChildAttendances(child.id) > 0); // Only children with attendances
 
   const data: ExcelData = {
     worksheets: [
@@ -281,14 +284,7 @@ export const createChildAttendanceXlsx = (
                 DayDate.fromDayId(shift.dayId),
                 shift.kind,
                 shift.description,
-                ...filteredChildren.map(child => {
-                  const attendanceForShift = attendances.find(att => att.shiftId === shift.id);
-                  if (attendanceForShift && attendanceForShift.attendances[child.id] && attendanceForShift.attendances[child.id].didAttend) {
-                    return 1;
-                  } else {
-                    return 0;
-                  }
-                }),
+                ...filteredChildren.map(child => richAttendances.didChildAttend(child.id, shift.id)),
               ],
               width: 22,
             }
@@ -310,10 +306,10 @@ export const createAllFiscalCertsXlsx = (
 ): LocalFileCreationResult => {
 
   const sortedShifts = Shift.sort(shifts);
-  const richAttendances = new DetailedChildAttendancesOnShifts(
-    attendances.map(att => new DetailedChildAttendancesOnShift(att.shiftId, att.attendances))
+  const richAttendances = new DetailedAttendancesOnShifts(
+    attendances.map(att => new DetailedAttendancesOnShift(att.shiftId, att.attendances, {})),
   );
-  const sortedChildren = Child.sorted(allChildren).filter(child => richAttendances.numberOfAttendances(child.id) > 0);
+  const sortedChildren = Child.sorted(allChildren).filter(child => richAttendances.numberOfChildAttendances(child.id) > 0);
 
   const spacer = ['', '', ''];
 
@@ -332,7 +328,7 @@ export const createAllFiscalCertsXlsx = (
         },
         {
           width: 25,
-          values: [...spacer, 'Totaal (incl. korting)', ...sortedChildren.map(child => richAttendances.amountPaidBy(child.id))],
+          values: [...spacer, 'Totaal (incl. korting)', ...sortedChildren.map(child => richAttendances.amountPaidByChild(child.id))],
         },
         {
           width: 25,
@@ -377,7 +373,7 @@ export const createAllFiscalCertsXlsx = (
               shift.kind,
               shift.price,
               shift.description,
-              ...sortedChildren.map(child => richAttendances.didAttend(child.id, shift.id)),
+              ...sortedChildren.map(child => richAttendances.didChildAttend(child.id, shift.id)),
             ]
           }
         })
@@ -396,13 +392,13 @@ export const createChildrenPerDayXlsx = (
   tenant: string
 ): LocalFileCreationResult => {
 
-  const detailedAttendances = new DetailedChildAttendancesOnShifts(
-    allAttendances.map(detailed => new DetailedChildAttendancesOnShift(detailed.shiftId, detailed.attendances))
+  const detailedAttendances = new DetailedAttendancesOnShifts(
+    allAttendances.map(detailed => new DetailedAttendancesOnShift(detailed.shiftId, detailed.attendances, {}))
   );
 
   const list = _.toPairs(_.groupBy(shifts, shift => shift.dayId))
     .map(( [dayId, shiftsOnDay] ) => {
-      const uniqueAttendancesOnDay = detailedAttendances.uniqueAttendances(shiftsOnDay.map(shift => shift.id));
+      const uniqueAttendancesOnDay = detailedAttendances.uniqueChildAttendances(shiftsOnDay.map(shift => shift.id));
 
       return {
         day: DayDate.fromDayId(dayId),
