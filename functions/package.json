@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "@hoepel.app/api",
   "scripts": {
     "lint": "tslint --project tsconfig.json",
     "build": "tsc",
