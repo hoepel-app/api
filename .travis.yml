@@ -1,5 +1,7 @@
 language: node_js
+
 sudo: false
+
 node_js:
 - node
 - 11
@@ -8,10 +10,15 @@ node_js:
 install:
 - npm --prefix functions ci
 
-script:
-- npm --prefix functions run lint
-- npm --prefix functions test
-
-#deploy:
-# TODO firebase deploy
+jobs:
+  include:
+    - stage: lint
+      script:
+      - npm --prefix functions run lint
+    - stage: test
+      script:
+      - npm --prefix functions test
+    - stage: deploy
+      deploy:
+        provider: firebase
 
