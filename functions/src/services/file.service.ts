@@ -6,7 +6,8 @@ import { ShiftService } from './shift.service';
 import { IContactPersonRepository } from './contact-person.service';
 import { ChildAttendanceService } from './child-attendance.service';
 import { CrewAttendanceService } from './crew-attendance.service';
-import { ExcelData, LocalFileCreationResult, XlsxExporter } from './exporters/exporter';
+import { SpreadsheetData, XlsxExporter } from './exporters/xlsx-exporter';
+import { LocalFile } from './exporters/exporter';
 
 type FirestoreFileDocument = IReport & { tenant: string };
 
@@ -29,7 +30,7 @@ export class FileService {
   }
 
   async exportAllCrew(tenant: string, createdBy: string, uid: string): Promise<FirestoreFileDocument> {
-    const spreadsheet = this.xlsxExporter.createCrewList(await this.crewRepository.getAll(tenant));
+    const spreadsheet = this.xlsxExporter.createCrewMemberList(await this.crewRepository.getAll(tenant));
     return await this.saveXlsxFile(spreadsheet, tenant, createdBy, uid, 'all-crew');
   }
 
@@ -103,11 +104,11 @@ export class FileService {
     await this.db.collection('reports').doc(docs.docs[0].id).delete();
   }
 
-  private async saveXlsxFile(spreadsheet: ExcelData, tenant: string, createdBy: string, uid: string, type: FileType): Promise<FirestoreFileDocument> {
+  private async saveXlsxFile(spreadsheet: SpreadsheetData, tenant: string, createdBy: string, uid: string, type: FileType): Promise<FirestoreFileDocument> {
     return this.saveFile(this.xlsxExporter.buildExcelFile(spreadsheet), tenant, createdBy, uid, type);
   }
 
-  private async saveFile(localFile: LocalFileCreationResult, tenant: string, createdBy: string, uid: string, type: FileType): Promise<FirestoreFileDocument> {
+  private async saveFile(localFile: LocalFile, tenant: string, createdBy: string, uid: string, type: FileType): Promise<FirestoreFileDocument> {
     const bucketFileName = await this.uploadFile(tenant, localFile);
 
     const doc: FirestoreFileDocument = {
@@ -139,7 +140,7 @@ export class FileService {
    *
    * @return The name of the file in the file storage bucket
    */
-  private async uploadFile(tenant: string, localFile: LocalFileCreationResult): Promise<string> {
+  private async uploadFile(tenant: string, localFile: LocalFile): Promise<string> {
     // Upload to storage
     const name = `${new Date().getTime()} ${tenant} ${localFile.downloadFileName}`;
 

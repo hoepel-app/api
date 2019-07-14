@@ -18,7 +18,7 @@ import {
   createCrewAttendanceByCrewRepository,
   createCrewAttendanceByShiftRepository, CrewAttendanceService,
 } from '../services/crew-attendance.service';
-import { XlsxExporter } from '../services/exporters/exporter';
+import { XlsxExporter } from '../services/exporters/xlsx-exporter';
 
 const db = admin.firestore();
 const storage = admin.storage().bucket('hoepel-app-reports');
