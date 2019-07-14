@@ -6,6 +6,8 @@ node_js:
 - 10
 install:
 - npm --prefix functions ci
+script:
+- npm --prefix functions test
 jobs:
   include:
   - stage: lint
