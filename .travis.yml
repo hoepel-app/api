@@ -8,17 +8,9 @@ install:
 - npm --prefix functions ci
 script:
 - npm --prefix functions test
-jobs:
-  include:
-  - stage: lint
-    script:
-    - npm --prefix functions run lint
-  - stage: test
-    script:
-    - npm --prefix functions test
-  - stage: deploy
-    deploy:
-      provider: firebase
-      token:
-        secure: iWJMsTq5D75gDf3WmuvnYPtGm/+PqZe9V8Q21+0cy9xH4P/Omv64KjfkZ6TYYl5Lo+zRF37byhaJfojJz5LTH7lmZ8poH6Vh5Pbg5LVTLyiDUqVosoBQ0juAMFTd/aUeA0XmwDQfL0DcEvbSnM1sg8AlwYT4cwRR5mJGE+tv++/PoHNR95SpO/11SVssLrKjYJAAaDdcX6sbTVsLnA23qH0ioLp4wgvzz7SosogpuOokW7zIyUy03HFePuly/C+8MimrffUkdQWSW3A1axGAYqkmUGWR57+kTu3DG/x+KzinalUYSwozstlMcSjAYgEkCibxMxBfL6lijrZA62BAGF7nYcFODLStxV4GIZA81tDrQUqsADLynDz865xQfR3hw2CB747lIwbsm9Rjn3DgeUorwA8IOrYf+JrwIMgsfztwWl1StdioMdeLAHDgfoQs4CVN9Leaa21SmKByeydUj2/yAvp2PBl8aZqSj7DHbjw4qNZ4z9dMsilUEEZYU39dZgNuKJjI/CAvVs9evUx8pyzGn+9MRrsN7vQNtShd1g/u3kCpMzRjABkscKtj8h9mFtObuXuI+JifeFQskbu7iNjvuxc7K4CnNu0LmQoaMOegh9j4j27/GCiPud0EFyVSevgggwWbAYg9HZE5MuQcTxlslHpaTTIZCtltVi6TW1Q=
+- npm --prefix functions run lint
+deploy:
+  provider: firebase
+  token:
+    secure: iWJMsTq5D75gDf3WmuvnYPtGm/+PqZe9V8Q21+0cy9xH4P/Omv64KjfkZ6TYYl5Lo+zRF37byhaJfojJz5LTH7lmZ8poH6Vh5Pbg5LVTLyiDUqVosoBQ0juAMFTd/aUeA0XmwDQfL0DcEvbSnM1sg8AlwYT4cwRR5mJGE+tv++/PoHNR95SpO/11SVssLrKjYJAAaDdcX6sbTVsLnA23qH0ioLp4wgvzz7SosogpuOokW7zIyUy03HFePuly/C+8MimrffUkdQWSW3A1axGAYqkmUGWR57+kTu3DG/x+KzinalUYSwozstlMcSjAYgEkCibxMxBfL6lijrZA62BAGF7nYcFODLStxV4GIZA81tDrQUqsADLynDz865xQfR3hw2CB747lIwbsm9Rjn3DgeUorwA8IOrYf+JrwIMgsfztwWl1StdioMdeLAHDgfoQs4CVN9Leaa21SmKByeydUj2/yAvp2PBl8aZqSj7DHbjw4qNZ4z9dMsilUEEZYU39dZgNuKJjI/CAvVs9evUx8pyzGn+9MRrsN7vQNtShd1g/u3kCpMzRjABkscKtj8h9mFtObuXuI+JifeFQskbu7iNjvuxc7K4CnNu0LmQoaMOegh9j4j27/GCiPud0EFyVSevgggwWbAYg9HZE5MuQcTxlslHpaTTIZCtltVi6TW1Q=
 
