@@ -9,7 +9,7 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "backup-firestore": "gcloud beta firestore export gs://hoepel-app-backups/manual/$(date +\"%s\")",
-    "test": "mocha -r ts-node/register src/**/*.test.ts"
+    "test": "mocha -r ts-node/register 'src/**/*.test.ts'"
   },
   "main": "lib/index.js",
   "dependencies": {
