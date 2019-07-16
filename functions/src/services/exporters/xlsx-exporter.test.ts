@@ -86,6 +86,7 @@ describe('XlsxExporter', async () => {
     expect(res.filename).to.equal('Alle kinderen');
     expect(res.worksheets).to.have.length(1);
     expect(res.worksheets[0].name).to.equal('Alle kinderen');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31); // Excel worksheet names must be <31 characters
 
     const childListExpected = [
       {'values': ['Voornaam', 'Kind 1', 'Kind 2', 'Kind 3'], 'width': 20},
@@ -109,6 +110,7 @@ describe('XlsxExporter', async () => {
     expect(res.filename).to.equal('Kinderen met opmerking');
     expect(res.worksheets).to.have.length(1);
     expect(res.worksheets[0].name).to.equal('Kinderen met opmerking');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31);; // Excel worksheet names must be <31 characters
 
     const childListExpected = [
       {'values': ['Voornaam', 'Kind 1'], 'width': 20},
@@ -132,6 +134,7 @@ describe('XlsxExporter', async () => {
     expect(res.filename).to.equal('Alle animatoren');
     expect(res.worksheets).to.have.length(1);
     expect(res.worksheets[0].name).to.equal('Alle animatoren');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31); // Excel worksheet names must be <31 characters
 
     const crewListExpected = [
       {'values': ['Voornaam', 'Animator 1', 'Animator 2', 'Animator 3'], 'width': 20},
@@ -164,6 +167,7 @@ describe('XlsxExporter', async () => {
     expect(res.filename).to.equal('Aanwezigheden animatoren 2019');
     expect(res.worksheets).to.have.length(1);
     expect(res.worksheets[0].name).to.equal('Aanwezigheden animatoren 2019');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31); // Excel worksheet names must be <31 characters
 
     const expected = [
       {'values': ['', '', 'Voornaam', 'Animator 1', 'Animator 2'], 'width': 20},
@@ -200,6 +204,7 @@ describe('XlsxExporter', async () => {
     expect(res.filename).to.equal('Aanwezigheden kinderen 2019');
     expect(res.worksheets).to.have.length(1);
     expect(res.worksheets[0].name).to.equal('Aanwezigheden kinderen 2019');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31); // Excel worksheet names must be <31 characters
 
     const expected = [
       {'values': ['', '', 'Voornaam', 'Kind 1', 'Kind 2'], 'width': 20},
@@ -237,6 +242,7 @@ describe('XlsxExporter', async () => {
     expect(res.filename).to.equal('Data fiscale attesten 2019');
     expect(res.worksheets).to.have.length(1);
     expect(res.worksheets[0].name).to.equal('Data fiscale attesten 2019');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31); // Excel worksheet names must be <31 characters
 
     const expected = [
       {'values': ['', '', '', 'Voornaam', 'Kind 1', 'Kind 2'], 'width': 20},
@@ -279,7 +285,8 @@ describe('XlsxExporter', async () => {
 
     expect(res.filename).to.equal('Aantal unieke kinderen per dag 2019');
     expect(res.worksheets).to.have.length(1);
-    expect(res.worksheets[0].name).to.equal('Aantal unieke kinderen per dag 2019');
+    expect(res.worksheets[0].name).to.equal('Unieke kinderen per dag 2019');
+    expect(res.worksheets[0].name).to.have.length.lessThan(31); // Excel worksheet names must be <31 characters
 
     const expected = [
       {'values': ['Dag', { day: 3, month: 4, year: 2019 }, { day: 5, month: 8, year: 2019 } ], 'width': 20},
