@@ -17,7 +17,7 @@
     "@sentry/node": "^5.5.0",
     "@slack/client": "^5.0.1",
     "cors": "^2.8.5",
-    "docxtemplater": "^3.13.4",
+    "docxtemplater": "^3.13.6",
     "express": "^4.17.1",
     "firebase-admin": "^8.2.0",
     "firebase-functions": "^3.1.0",
