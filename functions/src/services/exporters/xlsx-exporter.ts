@@ -320,7 +320,7 @@ export class XlsxExporter {
     return {
       worksheets: [
         {
-          name: `Aantal unieke kinderen per dag ${year}`,
+          name: `Unieke kinderen per dag ${year}`,
           columns: [
             { values: [ 'Dag', ...list.map(row => row.day) ], width: 20 },
             { values: [ 'Aantal unieke kinderen', ...list.map(row => row.uniqueAttendancesOnDay) ], width: 25 },
