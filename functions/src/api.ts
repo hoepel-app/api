@@ -3,10 +3,15 @@ import * as cors from 'cors';
 import * as functions from 'firebase-functions';
 const Sentry = require('@sentry/node');
 import { logRequestStart } from './util/log-request';
+import { RELEASE_ID } from './release';
 
 const app = express();
 
-Sentry.init({ dsn: 'https://e2b8d5b8c87143948e4a0ca794fd06b2@sentry.io/1474167' });
+Sentry.init({
+  dsn: 'https://e2b8d5b8c87143948e4a0ca794fd06b2@sentry.io/1474167',
+  release: RELEASE_ID,
+});
+
 app.use(Sentry.Handlers.requestHandler());
 
 // Log all requests
@@ -30,6 +35,7 @@ app.use('/:tenant/templates', (req, res, next) => {
   next();
 }, require('./routes/templates.routes').router);
 
+app.use('/version', (req, res, next) => res.json({ release: RELEASE_ID }));
 
 // Error handlers
 

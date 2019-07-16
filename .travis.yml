@@ -7,6 +7,7 @@ node_js:
 install:
 - npm --prefix functions ci
 script:
+- sed -i "s|NO RELEASE ID SPECIFIED|$TRAVIS_COMMIT|g" functions/src/release.ts
 - npm --prefix functions test
 - npm --prefix functions run lint
 deploy:
