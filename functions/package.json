@@ -32,7 +32,7 @@
     "@types/chai": "^4.1.7",
     "@types/lodash": "^4.14.136",
     "@types/mocha": "^5.2.7",
-    "@types/nodemailer": "^6.2.0",
+    "@types/nodemailer": "^6.2.1",
     "@types/sinon": "^7.0.13",
     "chai": "^4.2.0",
     "firebase-functions-test": "^0.1.6",
