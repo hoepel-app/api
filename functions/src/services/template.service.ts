@@ -258,7 +258,19 @@ export class TemplateService {
     const zip = new JSZip(template); // DocxTemplater only supports loading zips from JSZip, create zipped template
     const doc = new Docxtemplater();
     doc.loadZip(zip);
-    doc.setOptions({linebreaks: true});
+    doc.setOptions({
+      linebreaks: true,
+      nullGetter: (part, scopeManager) => {
+        if (!part.module) {
+          return "[Geen waarde gevonden]";
+        }
+        if (part.module === "rawxml") {
+          return "";
+        }
+        return "";
+      },
+
+    });
 
     return doc;
   }
