@@ -33,7 +33,7 @@ interface CertificateTemplateFillInData {
 
   readonly attest_id: string,
 
-  readonly aanmaak_datum: string,
+  readonly aanmaakdatum: string,
 }
 
 interface CertificateTemplateFillInOptions {
@@ -93,7 +93,7 @@ const exampleData: CertificateTemplateFillInData = {
 
   attest_id: 'Attest identificatie',
 
-  aanmaak_datum: 'Aanmaakdatum komt hier',
+  aanmaakdatum: 'Aanmaakdatum komt hier',
 };
 
 export class TemplateService {
@@ -347,7 +347,7 @@ export class TemplateService {
       totale_prijs: totalPricePaid.toString(),
 
       attest_id: reportId,
-      aanmaak_datum: DayDate.today().toISO8601(),
+      aanmaakdatum: DayDate.today().toISO8601(),
     };
   }
 }
