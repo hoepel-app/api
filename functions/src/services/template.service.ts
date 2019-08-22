@@ -359,7 +359,7 @@ export class TemplateService {
       totale_prijs: totalPricePaid.toString(),
 
       attest_id: reportId,
-      aanmaakdatum: DayDate.today().toISO8601(),
+      aanmaakdatum: DayDate.today().toString(),
     };
   }
 }
