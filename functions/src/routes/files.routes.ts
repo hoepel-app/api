@@ -67,6 +67,8 @@ router.post(
       return res.status(400).json({ error: 'Only XLSX is supported for now'});
     }
 
+    const currentYear = new Date().getFullYear();
+
     switch(type) {
       case 'all-children':
         return res.json(await fileService.exportAllChildren(tenant, createdBy, uid));
@@ -75,13 +77,13 @@ router.post(
       case 'children-with-comment':
         return res.json(await fileService.exportChildrenWithComment(tenant, createdBy, uid));
       case 'crew-attendances':
-        return res.json(await fileService.exportCrewAttendances(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
+        return res.json(await fileService.exportCrewAttendances(tenant, createdBy, uid, metadata.year || currentYear));
       case 'child-attendances':
-        return res.json(await fileService.exportChildAttendances(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
+        return res.json(await fileService.exportChildAttendances(tenant, createdBy, uid, metadata.year || currentYear));
       case 'fiscal-certificates-list':
-        return res.json(await fileService.exportFiscalCertificatesList(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
+        return res.json(await fileService.exportFiscalCertificatesList(tenant, createdBy, uid, metadata.year || currentYear));
       case 'children-per-day':
-        return res.json(await fileService.exportChildrenPerDay(tenant, createdBy, uid, metadata.year || new Date().getFullYear()));
+        return res.json(await fileService.exportChildrenPerDay(tenant, createdBy, uid, metadata.year || currentYear));
       default:
         return res.status(400).json({ error: `No supported exporter found for type ${type}` });
     }
