@@ -216,7 +216,7 @@ export class XlsxExporter {
     shifts: ReadonlyArray<Shift>,
     attendances: ReadonlyArray<{ shiftId: string, attendances: { [childId: string]: IDetailedChildAttendance } }>,
     year: number,
-  ) {
+  ): SpreadsheetData {
     const sortedShifts = Shift.sort(shifts);
     const richAttendances = new DetailedAttendancesOnShifts(
       attendances.map(att => new DetailedAttendancesOnShift(att.shiftId, att.attendances, {})),
