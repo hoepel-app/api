@@ -343,7 +343,7 @@ export class XlsxExporter {
       } else if (v instanceof DayDate) {
         return {v: v.nativeDate, t: 'd'};
       } else if (v instanceof Price) {
-        return {v: v.toString(), t: 's'}; // TODO currency formatting
+        return {v: v.totalCents / 100, z: '€#,##0.00', t: 'n' };
       } else if (v === undefined) {
         return {t: 'z'};
       } else {
