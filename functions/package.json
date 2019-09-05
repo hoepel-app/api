@@ -19,7 +19,7 @@
     "cors": "^2.8.5",
     "docxtemplater": "^3.13.6",
     "express": "^4.17.1",
-    "firebase-admin": "^8.4.0",
+    "firebase-admin": "^8.5.0",
     "firebase-functions": "^3.2.0",
     "jsonwebtoken": "^8.5.1",
     "jszip": "^2.6.1",
