@@ -17,6 +17,7 @@ export const createCrewAttendanceByCrewRepository = (db: admin.firestore.Firesto
   return new FirebaseTenantIndexedRepository<CrewAttendancesByCrewDoc, CrewAttendancesByCrewDoc & { id: string }>(
     db,
     store.crewAttendancesByCrew,
+    (id) => ({ attendances: {}, id }),
   );
 };
 
@@ -24,6 +25,7 @@ export const createCrewAttendanceByShiftRepository = (db: admin.firestore.Firest
   return new FirebaseTenantIndexedRepository<CrewAttendancesByShiftDoc, CrewAttendancesByShiftDoc & { id: string }>(
     db,
     store.crewAttendancesByShift,
+    (id) => ({ attendances: {}, id }),
   );
 };
 

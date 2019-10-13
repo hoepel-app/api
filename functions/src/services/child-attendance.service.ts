@@ -16,6 +16,7 @@ export const createChildAttendanceByChildRepository = (db: admin.firestore.Fires
   return new FirebaseTenantIndexedRepository<ChildAttendancesByChildDoc, ChildAttendancesByChildDoc & { id: string }>(
     db,
     store.childAttendancesByChild,
+    (id) => ({ attendances: {}, id }),
   );
 };
 
@@ -23,6 +24,7 @@ export const createChildAttendanceByShiftRepository = (db: admin.firestore.Fires
   return new FirebaseTenantIndexedRepository<ChildAttendancesByShiftDoc, ChildAttendancesByShiftDoc & { id: string }>(
     db,
     store.childAttendancesByShift,
+    (id) => ({ attendances: {}, id }),
   );
 };
 

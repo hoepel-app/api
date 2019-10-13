@@ -15,9 +15,16 @@ export class ShiftService {
     private shiftRepository: IShiftRepository,
   ) {}
 
+  // TODO could be optimized
   async getShiftsInYear(tenant: string, year: number): Promise<ReadonlyArray<Shift>> {
     const shifts = await this.shiftRepository.getAll(tenant);
     return shifts.filter(shift => DayDate.fromDayId(shift.dayId).year === year);
+  }
+
+  // TODO could be optimized
+  async getShiftsOnDay(tenant: string, day: DayDate): Promise<ReadonlyArray<Shift>> {
+    const shifts = await this.shiftRepository.getAll(tenant);
+    return shifts.filter(shift => shift.dayId === day.toDayId());
   }
 
   /**

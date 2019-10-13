@@ -7,3 +7,6 @@ typings/
 
 .runtimeconfig.json
 
+# Firebase service account details for local execution
+.key.json
+

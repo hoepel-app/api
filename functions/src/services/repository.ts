@@ -13,6 +13,7 @@ export class FirebaseTenantIndexedRepository<IT extends Omit<IT, "tenant">, T> i
   constructor(
     private readonly db: admin.firestore.Firestore,
     private collection: TenantIndexedMappingCollection<IT, T>,
+    private onMissingData: (id: string) => T = (id) => { throw new DocumentNotFoundError(id, this.collection.collectionName) },
   ) {
   }
 
@@ -20,7 +21,7 @@ export class FirebaseTenantIndexedRepository<IT extends Omit<IT, "tenant">, T> i
     const snapshot: DocumentSnapshot = await this.db.collection(this.collection.collectionName).doc(id).get();
 
     if (!snapshot.exists) {
-      throw new DocumentNotFoundError(id, this.collection.collectionName);
+      return this.onMissingData(id);
     }
 
     const dataWithTenant = snapshot.data() as IT & { tenant: string };
@@ -33,11 +34,12 @@ export class FirebaseTenantIndexedRepository<IT extends Omit<IT, "tenant">, T> i
     }
   }
 
-  async getAll(tenant: string): Promise<ReadonlyArray<T>> {
-    const snapshot = await this.db
+  async getAll(tenant: string, howMany?: number): Promise<ReadonlyArray<T>> {
+    const query = this.db
       .collection(this.collection.collectionName)
       .where('tenant', '==', tenant)
-      .get();
+
+    const snapshot = (howMany === undefined) ? await query.get() : await query.limit(howMany).get();
 
     return snapshot.docs
       .filter(docSnapshot => docSnapshot.data().tenant === tenant)
@@ -73,6 +75,7 @@ export class FirebaseRepository<IT, T> implements Repository<T> {
   constructor(
     private readonly db: admin.firestore.Firestore,
     private collection: MappingCollection<IT, T>,
+    private onMissingData: (id: string) => T = (id) => { throw new DocumentNotFoundError(id, this.collection.collectionName) },
   ) {
   }
 
@@ -80,7 +83,7 @@ export class FirebaseRepository<IT, T> implements Repository<T> {
     const snapshot: DocumentSnapshot = await this.db.collection(this.collection.collectionName).doc(id).get();
 
     if (!snapshot.exists) {
-      throw new DocumentNotFoundError(id, this.collection.collectionName);
+      return this.onMissingData(id);
     } else {
       return this.collection.mapper.lift(id, snapshot.data() as IT);
     }

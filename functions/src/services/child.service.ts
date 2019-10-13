@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { Child, childMapper, IChild, store, TenantIndexedRepository } from '@hoepel.app/types';
+import { Child, IChild, store, TenantIndexedRepository } from '@hoepel.app/types';
 import { FirebaseTenantIndexedRepository } from './repository';
 
 export type IChildRepository = TenantIndexedRepository<Child>;

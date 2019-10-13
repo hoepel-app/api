@@ -4,6 +4,7 @@ import * as functions from 'firebase-functions';
 const Sentry = require('@sentry/node');
 import { logRequestStart } from './util/log-request';
 import { RELEASE_ID } from './release';
+import { graphqlServer } from './graphql';
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(Sentry.Handlers.requestHandler());
 
 // Log all requests
 app.use(logRequestStart);
+
+graphqlServer.applyMiddleware({ app });
 
 // Automatically allow cross-origin requests
 app.use(cors({origin: true}));
