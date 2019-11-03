@@ -8,7 +8,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "backup-firestore": "gcloud beta firestore export gs://hoepel-app-backups/manual/$(date +\"%s\")",
+    "backup-firestore": "gcloud beta firestore export gs://hoepel-app-backups/manual/$(date +\"%s\") --project=hoepel-app",
     "test": "mocha -r ts-node/register 'src/**/*.test.ts'"
   },
   "main": "lib/index.js",
