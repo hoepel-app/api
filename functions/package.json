@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.3",
-    "@types/lodash": "^4.14.138",
+    "@types/lodash": "^4.14.147",
     "@types/mocha": "^5.2.7",
     "@types/nodemailer": "^6.2.1",
     "@types/sinon": "^7.0.13",
