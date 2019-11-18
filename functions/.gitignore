@@ -6,4 +6,5 @@
 typings/
 
 .runtimeconfig.json
+key.json
 
