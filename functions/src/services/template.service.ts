@@ -334,7 +334,7 @@ export class TemplateService {
 
     const specificDates = shifts.map(shift => DayDate.fromDayId(shift.dayId).toString() + ' (' + shift.kind + ')').join('\n');
 
-    const organisationAddress = (organisation.address.streetAndNumber || '') + ', ' +
+    const organisationAddress = (organisation.address.street || '') + ' ' + (organisation.address.number || '') + ', ' +
       (organisation.address.zipCode || '') + ' ' +
       (organisation.address.city || '');
 
