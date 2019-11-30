@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { IUser } from "@hoepel.app/types";
 
 export class UserService {
   constructor(
@@ -22,6 +23,24 @@ export class UserService {
 
   getUser(uid: string) {
     return this.auth.getUser(uid);
+  }
+
+  async getUserFromDb(uid: string): Promise<IUser | null> {
+    return this.db.collection('users').doc(uid).get().then(snap => {
+      if (snap.exists) {
+        const data = snap.data();
+        const acceptedPrivacyPolicy: Date = data.acceptedPrivacyPolicy?.toDate();
+        const acceptedTermsAndConditions: Date = data.acceptedTermsAndConditions?.toDate();
+
+        return {
+          ...data,
+          acceptedPrivacyPolicy,
+          acceptedTermsAndConditions,
+        } as IUser;
+      } else {
+        return null;
+      }
+    })
   }
 
   async updateDisplayName(uid: string, displayName: string): Promise<void> {

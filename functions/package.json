@@ -23,6 +23,7 @@
     "firebase-admin": "^8.6.0",
     "firebase-functions": "^3.3.0",
     "graphql": "^14.5.8",
+    "graphql-playground-middleware-express": "^1.7.12",
     "graphql-tools": "^4.0.6",
     "jsonwebtoken": "^8.5.1",
     "jszip": "^2.6.1",
@@ -35,6 +36,7 @@
     "@types/chai": "^4.2.3",
     "@types/lodash": "^4.14.138",
     "@types/mocha": "^5.2.7",
+    "@types/node": "^8.10.59",
     "@types/nodemailer": "^6.2.1",
     "@types/sinon": "^7.0.13",
     "chai": "^4.2.0",
@@ -44,10 +46,10 @@
     "sinon": "^7.4.2",
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.7.2"
   },
   "private": true,
   "engines": {
-    "node": "8"
+    "node": "10"
   }
 }

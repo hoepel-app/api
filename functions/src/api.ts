@@ -45,9 +45,9 @@ app.use(
   (err, req, res, next) => {
     Sentry.configureScope((scope) => {
       scope.setUser({
-        email: (res.locals.user || {}).email,
-        id: (res.locals.user || {}).uid,
-        username: (res.locals.user || {}).name,
+        email: res.locals.user?.email,
+        id: res.locals.user?.uid,
+        username: res.locals.user?.name,
         ip_address: req.header('X-Forwarded-For'),
       });
 
@@ -71,7 +71,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     status: 'error',
     message: err.message,
-    cause: (err.cause || {}).message,
+    cause: err.cause?.message,
    });
 });
 

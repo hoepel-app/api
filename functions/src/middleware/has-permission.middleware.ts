@@ -47,7 +47,7 @@ export const firebaseHasPermissionMiddleware = (db: admin.firestore.Firestore, p
         throw new NoPermissionError('No permission to access this resource', {
           permissionsDocExists: permissionsDoc.exists,
           permissionNeeded,
-          permissions: (permissionsDoc.data() || {}).permissions,
+          permissions: permissionsDoc.data()?.permissions,
           tenant,
         });
       } else {
