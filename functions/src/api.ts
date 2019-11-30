@@ -21,6 +21,8 @@ app.use(logRequestStart);
 app.use(cors({origin: true}));
 
 // Mount routes
+app.use('/graphql', require('./routes/graphql.routes').router);
+
 app.use('/speelpleinwerking.com', require('./routes/speelpleinwerking.com.routes').router);
 app.use('/user', require('./routes/user.routes').router);
 app.use('/organisation', require('./routes/organisation.routes').router);
