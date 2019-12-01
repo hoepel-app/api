@@ -15,10 +15,16 @@ import { createContactPersonRepository } from '../services/contact-person.servic
 import { ShiftService, createShiftRepository } from '../services/shift.service';
 import { ChildAttendanceService, createChildAttendanceByChildRepository, createChildAttendanceByShiftRepository } from '../services/child-attendance.service';
 import { createCrewAttendanceByCrewRepository, createCrewAttendanceByShiftRepository, CrewAttendanceService } from '../services/crew-attendance.service';
+import { TemplateService } from '../services/template.service';
+import { AddressService } from '../services/address.service';
+import { OrganisationService } from '../services/organisation.service';
+import { RELEASE_ID } from '../release';
 
 const db = admin.firestore();
 const auth = admin.auth();
-const storage = admin.storage().bucket('hoepel-app-reports');;
+
+const templatesStorage = admin.storage().bucket('hoepel-app-templates');
+const reportsStorage = admin.storage().bucket('hoepel-app-reports');
 
 const userService = new UserService(db, auth);
 const childRepository = createChildRepository(db);
@@ -29,10 +35,14 @@ const childAttendanceByChildRepository = createChildAttendanceByChildRepository(
 const childAttendanceByShiftRepository = createChildAttendanceByShiftRepository(db);
 const crewAttendanceByCrewRepository = createCrewAttendanceByCrewRepository(db);
 const crewAttendanceByShiftRepository = createCrewAttendanceByShiftRepository(db);
+
+const addressService = new AddressService(contactPersonRepository);
+const organisationService = new OrganisationService(db, auth);
 const shiftService = new ShiftService(shiftRepository);
 const childAttendanceService = new ChildAttendanceService(childAttendanceByChildRepository, childAttendanceByShiftRepository);
 const crewAttendanceService = new CrewAttendanceService(crewAttendanceByCrewRepository, crewAttendanceByShiftRepository);
-const fileService = new FileService(new XlsxExporter(), childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, crewAttendanceService, db, storage);
+const fileService = new FileService(new XlsxExporter(), childRepository, crewRepository, contactPersonRepository, shiftService, childAttendanceService, crewAttendanceService, db, reportsStorage);
+const templateService = new TemplateService(db, templatesStorage, reportsStorage, childRepository, contactPersonRepository, addressService, organisationService, childAttendanceService, shiftRepository);
 
 const parseToken = async (authorizationHeader: string): Promise<admin.auth.DecodedIdToken> => {
   // tslint:disable-next-line: triple-equals
@@ -80,6 +90,9 @@ const typeDefs: ITypeDefinitions = `
     CREW_ATTENDANCES
     CHILD_ATTENDANCES
     FISCAL_CERTIFICATES_LIST
+    CHILD_HEALTH_INSURANCE_CERTIFICATE
+    CHILD_FISCAL_CERTIFICATE
+    CHILD_INVOICE
     CHILDREN_PER_DAY
   }
 
@@ -98,6 +111,16 @@ const typeDefs: ITypeDefinitions = `
     format: ReportFileFormat!
     createdBy: String
     createdByUid: String!
+    type: ReportType!
+    childId: String
+    year: Int
+  }
+
+  type Template {
+    created: String!
+    createdBy: String!
+    fileName: String!
+    displayName: String!
     type: ReportType!
   }
 
@@ -125,8 +148,17 @@ const typeDefs: ITypeDefinitions = `
     email: String!
   }
 
+  type TestTemplateOutput {
+    path: String
+  }
+
+  type Application {
+    release: String!
+  }
+
   type Query {
     me: User
+    application: Application
   }
 
   type Mutation {
@@ -136,6 +168,10 @@ const typeDefs: ITypeDefinitions = `
 
     deleteReport(tenant: ID!, fileName: String!): Report
     createReport(tenant: ID!, type: ReportType!, format: ReportFileFormat!, year: Int): Report!
+
+    testTemplate(tenant: ID!, templateFileName: String!): TestTemplateOutput!
+    fillInTemplate(tenant: ID!, childId: String!, templateFileName: String!, year: Int): Report!
+    deleteTemplate(tenant: ID!, templateFileName: String!): Template!
   }
 
   schema {
@@ -163,7 +199,7 @@ const resolvers: IResolvers = {
       await assertHasPermissions(user.uid, tenant, Permission.ReportsDelete)
       await fileService.removeFile(tenant, user.uid, fileName)
     },
-    createReport: async (obj, { tenant, type, format, year }: { tenant: string, type: string, format: string, year: number }, context: IncomingMessage, info) => {
+    createReport: async (obj, { tenant, type, format, year }: { tenant: string, type: string, format: string, year?: number }, context: IncomingMessage, info) => {
       const user = await parseToken(context.headers.authorization)
       await assertHasPermissions(user.uid, tenant, Permission.ReportsRequest)
 
@@ -193,6 +229,44 @@ const resolvers: IResolvers = {
           throw new Error(`No exporter found for ${type}`)
       }
     },
+    testTemplate: async (obj, args: { tenant: string, templateFileName: string }, context: IncomingMessage, info) => {
+      const user = await parseToken(context.headers.authorization)
+      await assertHasPermissions(user.uid, args.tenant, Permission.TemplateRead)
+
+      return await templateService.testTemplate(
+        args.tenant,
+        args.templateFileName,
+        user.name || user.email,
+        user.uid,
+      );
+    },
+    fillInTemplate: async (obj, args: { tenant: string, childId: string, templateFileName: string, year?: number }, context: IncomingMessage, info) => {
+      const user = await parseToken(context.headers.authorization)
+      await assertHasPermissions(user.uid, args.tenant, Permission.TemplateFillIn)
+      await assertHasPermissions(user.uid, args.tenant, Permission.ChildRead)
+
+      return await templateService.fillInChildTemplate(args.tenant, {
+        createdBy: user.name || user.email || '',
+        createdByUid: user.uid,
+        childId: args.childId,
+        templateFileName: args.templateFileName,
+        year: args.year || new Date().getFullYear(),
+      });
+    },
+    deleteTemplate: async (obj, args: { tenant: string, templateFileName: string }, context: IncomingMessage, info) => {
+      const user = await parseToken(context.headers.authorization)
+      await assertHasPermissions(user.uid, args.tenant, Permission.TemplateWrite)
+
+      const result = await templateService.deleteTemplate(
+        args.tenant,
+        args.templateFileName,
+      );
+
+      return {
+        ...result,
+        created: result.created.getTime().toString()
+      }
+    }
   },
   Query: {
     me: async (obj, args, context: IncomingMessage, info) => {
@@ -206,6 +280,9 @@ const resolvers: IResolvers = {
         acceptedTermsAndConditions: user?.acceptedTermsAndConditions?.getTime().toString(),
         email: user?.email,
       }
+    },
+    application: (obj, args, context: IncomingMessage, info) => {
+      return { release: RELEASE_ID }
     }
   },
   ReportType: {
@@ -215,7 +292,10 @@ const resolvers: IResolvers = {
     CREW_ATTENDANCES: 'crew-attendances',
     CHILD_ATTENDANCES: 'child-attendances',
     FISCAL_CERTIFICATES_LIST: 'fiscal-certificates-list',
-    CHILDREN_PER_DAY: 'children-per-day'
+    CHILDREN_PER_DAY: 'children-per-day',
+    CHILD_HEALTH_INSURANCE_CERTIFICATE: 'child-health-insurance-certificate',
+    CHILD_FISCAL_CERTIFICATE: 'child-fiscal-certificate',
+    CHILD_INVOICE: 'child-invoice',
   },
   User: {
     token: async (obj, args, context: IncomingMessage, info) => {

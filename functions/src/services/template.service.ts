@@ -6,7 +6,7 @@ import { AddressService } from './address.service';
 import { OrganisationService } from './organisation.service';
 import { ChildAttendanceService } from './child-attendance.service';
 import { IShiftRepository, ShiftService } from './shift.service';
-import { DayDate, FileType, Price, Shift } from '@hoepel.app/types';
+import { DayDate, FileType, Price, Shift, IReport, ITemplate } from '@hoepel.app/types';
 import * as _ from 'lodash';
 import dropTenant from '../util/drop-tenant';
 import { IContactPersonRepository } from './contact-person.service';
@@ -116,7 +116,7 @@ export class TemplateService {
    * @param createdBy Name or email address of the person who requested to test this template
    * @param createdByUid User id of the person who requested to test this template
    */
-  async testTemplate(tenant: string, templateFileName: string, createdBy: string, createdByUid: string) {
+  async testTemplate(tenant: string, templateFileName: string, createdBy: string, createdByUid: string): Promise<{ path: string }> {
     const filledIn = await this.getAndFillTemplate(tenant, templateFileName, exampleData);
 
     const fileName = Math.random().toString(36).substring(2);
@@ -137,7 +137,7 @@ export class TemplateService {
     return { path: 'test-template/' + fileName };
   }
 
-  async fillInChildTemplate(tenant: string, options: CertificateTemplateFillInOptions) {
+  async fillInChildTemplate(tenant: string, options: CertificateTemplateFillInOptions): Promise<IReport & { id: string, tenant: string, childId: string, year: number, fillInParameters: CertificateTemplateFillInData }> {
     const docToSaveRef = this.db.collection('reports').doc();
     const reportId = docToSaveRef.id;
     const data = await this.getChildData(tenant, options.childId, options.year, reportId);
@@ -164,7 +164,7 @@ export class TemplateService {
     });
 
     // Save to Firestore
-    const docToSave = {
+    const docToSave: IReport & { tenant: string, childId: string, year: number, fillInParameters: CertificateTemplateFillInData } = {
       expires,
       created: new Date(),
       createdBy: options.createdBy,
@@ -181,24 +181,25 @@ export class TemplateService {
 
     await docToSaveRef.set(docToSave);
 
-    return docToSave;
+    return { ...docToSave, id: docToSaveRef.id };
   }
 
-  async deleteTemplate(tenant: string, templateFileName: string) {
+  async deleteTemplate(tenant: string, templateFileName: string): Promise<ITemplate> {
     const docs = await this.db.collection('templates').where('fileName', '==', templateFileName).where('tenant', '==', tenant).get();
 
     if (docs.empty) {
       throw new Error(`Could not find template to delete for tenant ${tenant} with fileName ${templateFileName}`);
     }
 
-    if (docs.docs[0].data().tenant !== tenant) {
+    const data = docs.docs[0].data()
+    if (data.tenant !== tenant) {
       throw new Error(`Tried to delete ${templateFileName} but it does not belong to tenant ${tenant}`);
     }
 
     await this.db.collection('templates').doc(docs.docs[0].id).delete();
     await this.templatesStorage.file(tenant + '/' + templateFileName).delete();
 
-    return { deletedId: templateFileName };
+    return { ...data, created: data.created.toDate() } as ITemplate;
   }
 
   private async getFileMetadata(tenant: string, templateFileName: string): Promise<TemplateMetadata & { id: string } | null> {
@@ -221,11 +222,11 @@ export class TemplateService {
   private getFileNamePrefix(reportType: FileType) {
     switch (reportType) {
       case 'child-fiscal-certificate':
-        return 'Fiscaal attest voor ';
+        return 'Fiscaal attest voor';
       case 'child-health-insurance-certificate':
-        return 'Attest mutualiteit voor ';
+        return 'Attest mutualiteit voor';
       default:
-        return 'Attest voor ';
+        return 'Attest voor';
     }
   }
 
