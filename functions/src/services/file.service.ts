@@ -9,7 +9,7 @@ import { CrewAttendanceService } from './crew-attendance.service';
 import { SpreadsheetData, XlsxExporter } from './exporters/xlsx-exporter';
 import { LocalFile } from './exporters/exporter';
 
-type FirestoreFileDocument = IReport & { tenant: string };
+type FirestoreFileDocument = IReport & { id?: string;  tenant: string };
 
 export class FileService {
   constructor(
@@ -123,9 +123,9 @@ export class FileService {
       type,
     };
 
-    await this.saveToFirestore(doc);
+    const id = await this.saveToFirestore(doc);
 
-    return doc;
+    return { ...doc, id };
   }
 
   private getFileExpirationDate(): Date {
@@ -160,7 +160,10 @@ export class FileService {
     return name;
   }
 
-  private async saveToFirestore(doc: FirestoreFileDocument): Promise<void> {
-    await this.db.collection('reports').add(doc);
+  /** @returns id of new document */
+  private async saveToFirestore(doc: FirestoreFileDocument): Promise<string> {
+    const savedDoc = await this.db.collection('reports').add(doc);
+
+    return savedDoc.id;
   }
 }
