@@ -33,7 +33,7 @@
     "xlsx": "^0.15.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.3",
+    "@types/chai": "^4.2.6",
     "@types/lodash": "^4.14.138",
     "@types/mocha": "^5.2.7",
     "@types/node": "^8.10.59",
