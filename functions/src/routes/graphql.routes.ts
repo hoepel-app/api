@@ -170,7 +170,7 @@ const typeDefs: ITypeDefinitions = `
     createReport(tenant: ID!, type: ReportType!, format: ReportFileFormat!, year: Int): Report!
 
     testTemplate(tenant: ID!, templateFileName: String!): TestTemplateOutput!
-    fillInTemplate(tenant: ID!, childId: String!, templateFileName: String!, year: Int): Report!
+    fillInTemplate(tenant: ID!, childId: ID!, templateFileName: String!, year: Int): Report!
     deleteTemplate(tenant: ID!, templateFileName: String!): Template!
   }
 
