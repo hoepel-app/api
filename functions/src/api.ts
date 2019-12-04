@@ -27,11 +27,6 @@ app.use('/speelpleinwerking.com', require('./routes/speelpleinwerking.com.routes
 app.use('/user', require('./routes/user.routes').router);
 app.use('/organisation', require('./routes/organisation.routes').router);
 
-app.use('/:tenant/templates', (req, res, next) => {
-  res.locals.tenant = req.params.tenant;
-  next();
-}, require('./routes/templates.routes').router);
-
 app.use('/version', (req, res, next) => res.json({ release: RELEASE_ID }));
 
 // Error handlers
