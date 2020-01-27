@@ -313,13 +313,15 @@ export class TemplateService {
     const address = await this.addressService.getAddressForChild(tenant, child);
     const organisation = await this.organisationService.getDetails(tenant);
 
-    const attendances = await this.childAttendanceService.getAttendancesForChild(tenant, childId);
-    const shiftIds = Object.keys(attendances);
-    const shifts = Shift.sort((await this.shiftRepository.getMany(tenant, shiftIds)))
+    const allAttendances = await this.childAttendanceService.getAttendancesForChild(tenant, childId)
+    const allShiftIds = Object.keys(allAttendances);
+    const shifts = Shift.sort((await this.shiftRepository.getMany(tenant, allShiftIds)))
       .filter(shift => shift && DayDate.fromDayId(shift.dayId).year === year); // Only keep shifts in this year
+
     const numberOfUniqueDays = ShiftService.numberOfUniqueDays(shifts);
 
-    const totalPricePaid = _.toPairs(attendances)
+    const totalPricePaid = _.toPairs(allAttendances)
+      .filter(([ shiftId, details ]) => shifts.map(s => s.id).includes(shiftId)) // Only keep attendances in this year
       .map(att => att[1].amountPaid)
       .map(iprice => new Price(iprice))
       .reduce((x, y) => x.add(y), new Price({ cents: 0, euro: 0 }));
@@ -327,7 +329,7 @@ export class TemplateService {
     const pricePerShift = shifts
       .map(shift => {
         const day = DayDate.fromDayId(shift.dayId).toString();
-        const price = new Price(_.toPairs(attendances).find(att => att[0] === shift.id)[1].amountPaid);
+        const price = new Price(_.toPairs(allAttendances).find(([ shiftId, details ]) => shiftId === shift.id)[1].amountPaid);
 
         return `${day.toString()} (${shift.kind}): ${price.toString()}`;
       })
