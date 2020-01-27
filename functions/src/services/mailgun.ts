@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as nodemailer from 'nodemailer';
-import * as mailgunTransport from 'nodemailer-mailgun-transport';
+import mailgunTransport from 'nodemailer-mailgun-transport';
 
 const auth = {
   auth: {

@@ -5,10 +5,11 @@
     "noImplicitReturns": true,
     "outDir": "lib",
     "sourceMap": true,
-    "target": "es6"
+    "target": "es6",
+    "esModuleInterop": true,
   },
   "compileOnSave": true,
   "include": [
     "src"
-  ]
+  ],
 }

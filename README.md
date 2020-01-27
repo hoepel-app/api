@@ -26,6 +26,12 @@ First, get the config:
 firebase functions:config:get > .runtimeconfig.json
 ```
 
+Get a service account key and export it:
+
+```
+export GOOGLE_APPLICATION_CREDENTIALS=key.json
+```
+
 Then, serve using Firebase emulator:
 
 ```

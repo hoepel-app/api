@@ -1,9 +1,10 @@
-import * as express from 'express';
-import * as cors from 'cors';
+import express from 'express';
+import cors from 'cors';
 import * as functions from 'firebase-functions';
-const Sentry = require('@sentry/node');
 import { logRequestStart } from './util/log-request';
 import { RELEASE_ID } from './release';
+import { server } from './graphql';
+import * as Sentry from '@sentry/node'
 
 const app = express();
 
@@ -21,13 +22,13 @@ app.use(logRequestStart);
 app.use(cors({origin: true}));
 
 // Mount routes
-app.use('/graphql', require('./routes/graphql.routes').router);
-
 app.use('/speelpleinwerking.com', require('./routes/speelpleinwerking.com.routes').router);
 app.use('/user', require('./routes/user.routes').router);
 app.use('/organisation', require('./routes/organisation.routes').router);
 
 app.use('/version', (req, res, next) => res.json({ release: RELEASE_ID }));
+
+server.applyMiddleware({ path: '/graphql', app });
 
 // Error handlers
 
