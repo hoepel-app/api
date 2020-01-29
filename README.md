@@ -38,3 +38,22 @@ Then, serve using Firebase emulator:
 firebase emulators:start --only functions
 ```
 
+## Enabling CORS on GCP buckets
+
+`cors.json`:
+
+```
+[
+  {
+    "origin": ["*"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+Then run:
+
+```
+gsutil cors set cors.json gs://hoepel-app.appspot.com
+```
